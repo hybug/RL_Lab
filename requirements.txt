@@ -1,0 +1,3 @@
+tensorflow==2.2.0
+pillow
+gym-super-mario-bros
