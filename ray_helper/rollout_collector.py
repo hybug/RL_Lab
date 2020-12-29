@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2020-12-24 11:48:45
-LastEditTime: 2020-12-29 13:50:09
+LastEditTime: 2020-12-29 13:57:48
 LastEditors: hanyu
 Description: Rollout Collector
 FilePath: /test_ppo/ray_helper/rollout_collector.py
@@ -20,8 +20,6 @@ from threading import Thread
 def flatten(list_of_list):
     '''
     description: combinate the list of iterable and return A Iterable
-    param {*}
-    return {*}
     '''
     return itertools.chain.from_iterable(list_of_list)
 
