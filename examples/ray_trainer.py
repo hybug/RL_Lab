@@ -181,3 +181,5 @@ def train():
     small_data_collector = RolloutCollector(
         server_nums=1, ps=ps, policy_evaluator_build_func=build_policy_evaluator,
         **kwargs)
+    cache_struct_path = f'/tmp/{FLAGS.dir}.pkl'
+    structure = fetch_one_structure(small_data_collector, cache_struct_path=cache_struct_path, is_head=True)
