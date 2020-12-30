@@ -1,26 +1,30 @@
-# coding: utf-8
 
-from algorithm import dPPOcC
-from module import KL_from_gaussians
-from module import mse
-from module import coex
-from module import icm
-from module import TmpHierRNN
-from module import TmpHierRMCRNN
-from module import entropy_from_logits as entropy
-from train_ops import miniOp
-from module import RMCRNN
-from utils import get_shape
-import tensorflow as tf
-import time
-import os
+"""
+Author: hanyu
+Date: 2020-12-29 14:34:34
+LastEditTime: 2020-12-29 14:39:09
+LastEditors: hanyu
+Description: PPO Trainer with ray core implement
+FilePath: /test_ppo/examples/PPO_super_mario_bros/ray_trainer.py
+"""
+
 import logging
-from ray_helper.miscellaneous import init_cluster_ray, warp_mkdir, warp_exists
-from ray_helper.rollout_collector import QueueReader, fetch_one_structure
-from ray_helper.asyncps import AsyncPS
-from ray_helper.rollout_collector import RolloutCollector
-import ray
+import os
 import sys
+import time
+
+import ray
+import tensorflow as tf
+from algorithm import dPPOcC
+from module import RMCRNN, KL_from_gaussians, TmpHierRMCRNN, TmpHierRNN, coex
+from module import entropy_from_logits as entropy
+from module import icm, mse
+from ray_helper.asyncps import AsyncPS
+from ray_helper.miscellaneous import init_cluster_ray, warp_exists, warp_mkdir
+from ray_helper.rollout_collector import (QueueReader, RolloutCollector,
+                                          fetch_one_structure)
+from train_ops import miniOp
+from utils import get_shape
 
 sys.path.append("/opt/tiger/test_ppo")
 
@@ -132,7 +136,8 @@ def build_policy_evaluator(kwargs):
     model_kwargs = deepcopy(kwargs)
     # pickle func in func
     from examples.PPO_super_mario_bros.env import build_env
-    from examples.PPO_super_mario_bros.policy_graph import build_evaluator_model
+    from examples.PPO_super_mario_bros.policy_graph import \
+        build_evaluator_model
     return model_kwargs, build_evaluator_model, env_kwargs, build_env
 
 def init_dir_and_log():
@@ -178,8 +183,57 @@ def train():
     """
     logging.info('get one seg from Evaluator for dtype and shapes')
     ps = AsyncPS.remote()
+    # get one seg for dtype and shapes, so the server_nums=1
     small_data_collector = RolloutCollector(
         server_nums=1, ps=ps, policy_evaluator_build_func=build_policy_evaluator,
         **kwargs)
     cache_struct_path = f'/tmp/{FLAGS.dir}.pkl'
     structure = fetch_one_structure(small_data_collector, cache_struct_path=cache_struct_path, is_head=True)
+    # after get example seg, del this small_data_collector
+    del small_data_collector
+
+    """
+    init data prefetch thread, prepare_input_pipe
+    """
+    keys = list(structure.keys())
+    dtypes = [structure[k].dtype for k in keys]
+    shapes = [structure[k].shape for k in keys]
+    
+    segBuffer = tf.queue.FIFOQueue(
+        capacity=FLAGS.qsize * FLAGS.batch_size,
+        dtypes=dtypes,
+        shapes=shapes,
+        names=keys,
+        shared_name='buffer'
+    )
+
+    server_nums = FLAGS.nof_evaluator
+    server_nums_refine = server_nums * 2 // FLAGS.cpu_per_actor
+    nof_server_gpus = FLAGS.nof_server_gpus
+    server_nums_refine = server_nums_refine // nof_server_gpus
+    # instantiate the RolloutCollector
+    data_collector = RolloutCollector(server_nums=server_nums_refine, ps=ps,
+                                    policy_evaluator_build_func=build_policy_evaluator, **kwargs)
+
+    config = tf.ConfigProto(
+        allow_soft_placement=True,
+        gpu_options=tf.GPUOption(per_process_gpu_memory_fraction=1)
+    )
+    config.gpu_options.allow_growth = True
+
+    sess = tf.Session(config=config)
+
+    reader = QueueReader(
+        
+    )
+
+
+
+def main():
+    if FLAGS.mode == 'train':
+        train()
+
+
+if __name__ == "__main__":
+    tf.logging.set_verbosity(tf.logging.INFO)
+    tf.app.run()

@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2020-12-24 11:48:45
-LastEditTime: 2020-12-29 13:57:48
+LastEditTime: 2020-12-30 13:19:59
 LastEditors: hanyu
 Description: Rollout Collector
 FilePath: /test_ppo/ray_helper/rollout_collector.py
@@ -229,3 +229,74 @@ def fetch_one_structure(small_data_collector, cache_struct_path, is_head):
             else:
                 time.sleep(sleep_time)
     return structure
+
+
+class QueueReader(Thread):
+    def __init__(self,
+                 sess,
+                 global_queue,
+                 data_collector,
+                 keys,
+                 dtypes,
+                 shapes):
+        Thread.__init__(self)
+        import tensorflow as tf
+        self.daemon = True
+
+        self.sess = sess
+        self.global_queue = global_queue
+        self.data_collector = data_collector
+
+        self.keys = keys
+        self.placeholders = [
+            tf.placeholders(
+                dtype=dtype,
+                shape=shape
+            ) for dtype, shape in zip(dtypes, shapes)
+        ]
+
+        # init ready_ids Queue
+        self.ready_ids = Queue(maxsize=120)
+        self.start_sample_flag = False
+        self.retrieval_sample_trunk_size = 8
+
+        # tf.queue.FIFOQueue enqueue function
+        # working for enqueuing element
+        # params: vals: A tensor, a list or tuple of tensors, or a dictionary containing the values to enqueue.
+        self.enqueue_op = self.global_queue.enqueue(
+            dict(zip(keys, self.placeholders))
+        )
+
+        def _run_sample_loop(self):
+            self.sample_thread = Thread(target=self._sample_loop)
+            self.sample_thread.start()
+
+        def _sample_loop(self):
+            '''
+            description: get ready_ids from data_collector
+            param {*}
+            return {*}
+            '''
+            while True:
+                ready_ids = next(self.data_collector)
+                for _id in ready_ids:
+                    self.ready_ids.put(_id)
+
+        def enqueue(self):
+            if not self.start_sample_flag:
+                self._run_sample_loop()
+                self.start_sample_flag = True
+            ready_ids_chunk = []
+            for _ in range(self.retrieval_sample_trunk_size):
+                ready_ids_chunk.append(self.ready_ids.get())
+            # get segs from ready_id
+            segs = self.data_collector.retrieval_sample(ready_ids_chunk)
+            for seg in segs:
+                feed_dict = {
+                    self.placeholders[i]: seg[key] for i, key in enumerate(self.keys)
+                }
+                self.sess.run(self.enqueue_op, feed_dict)
+
+        def run(self):
+            while True:
+                self.enqueue()
