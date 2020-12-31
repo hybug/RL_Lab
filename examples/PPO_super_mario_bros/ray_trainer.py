@@ -40,16 +40,16 @@ flags.DEFINE_string("mode", "train", "mode")
 flags.DEFINE_integer("act_space", 12, "act space")
 
 flags.DEFINE_string(
-    "basedir_ceph", "/mnt/cephfs_new_wj/arnold/labcv/xiaochangnan"
+    "basedir_ceph", "/notebooks/projects/hanyu/RayProject/test_ppo/temp_base_file"
                     "/PPOcGAE_SuperMarioBros-v0", "base dir for ceph")
 flags.DEFINE_string(
     "basedir_hdfs",
-    'hdfs://haruna/home/byte_arnold_lq_mlsys/user/xiaochangnan/test_ppo',
+    '',
     "base dir for hdfs")
 flags.DEFINE_string("dir", "0", "dir number")
 flags.DEFINE_string(
     "scriptdir",
-    "/opt/tiger/test_ppo/examples/PPO_super_mario_bros",
+    "/notebooks/projects/hanyu/RayProject/test_ppo/examples/PPO_super_mario_bros",
     "script dir")
 
 flags.DEFINE_bool("use_stage", True, "whether to use tf.contrib.staging")
@@ -73,7 +73,7 @@ flags.DEFINE_float("pq_kl_coef", 0.1,
 flags.DEFINE_float("p_kl_coef", 0.01,
                    "weight of kl between prior and normal gaussian")
 
-flags.DEFINE_bool("use_hdfs", True, "whether to use hdfs")
+flags.DEFINE_bool("use_hdfs", False, "whether to use hdfs")
 
 flags.DEFINE_integer("parallel", 64, "parallel envs")
 flags.DEFINE_integer("max_steps", 3200, "max rollout steps")
@@ -176,6 +176,7 @@ def train():
     kwargs = FLAGS.flag_values_dict()
     kwargs["BASE_DIR"] = base_dir
     kwargs["ckpt_dir"] = ckpt_dir
+    kwargs["num_returns"] = FLAGS.num_returns
     """
     get one seg from rollout worker for dtype and shapes
 
@@ -195,6 +196,7 @@ def train():
     """
     init data prefetch thread, prepare_input_pipe
     """
+    # keys = ['s', 'a', 'prev_a', 'a_logits', 'r', 'prev_r', 'adv', 'v_cur', 'state_in', 'slots']
     keys = list(structure.keys())
     dtypes = [structure[k].dtype for k in keys]
     shapes = [structure[k].shape for k in keys]

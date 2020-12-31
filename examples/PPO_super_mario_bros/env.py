@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2020-11-06 13:04:12
-LastEditTime: 2020-12-16 09:01:12
+LastEditTime: 2020-12-31 08:18:10
 LastEditors: hanyu
 Description: environment
 FilePath: /test_ppo/examples/PPO_super_mario_bros/env.py
@@ -194,7 +194,6 @@ def _warp_env():
         def postprocess(self, seg):
             """
             postprocess the seg for training
-            :author lhw
             """
             burn_in = self.burn_in
             seqlen = self.seqlen + burn_in
