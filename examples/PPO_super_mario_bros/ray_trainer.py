@@ -102,15 +102,15 @@ flags.DEFINE_integer("seed", 12358, "random seed")
 
 # param for ray evaluator
 flags.DEFINE_float("timeout", 0.1, "get operation timeout")
-flags.DEFINE_integer("num_returns", 32, "nof data of wait operation")
+flags.DEFINE_integer("num_returns", 1, "number of data of wait operation")
 flags.DEFINE_integer('cpu_per_actor', 2,
-                     'nof cpu required for infserver, -1 for not require')
+                     'number of cpu required for infserver, -1 for not require')
 flags.DEFINE_integer('load_ckpt_period', 10,
                      'for how many step to load ckpt in inf server')
 flags.DEFINE_integer(
     'qsize', 8, 'for how many qsize * batchsize in main procress')
-flags.DEFINE_integer('nof_server_gpus', 1, 'nof_gpus for training')
-flags.DEFINE_integer('nof_evaluator', 1, 'nof_gpus for training')
+flags.DEFINE_integer('nof_server_gpus', 1, 'number of gpus for training')
+flags.DEFINE_integer('nof_evaluator', 1, 'number of cpus for training')
 
 
 def build_policy_evaluator(kwargs):

@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2020-11-07 08:38:39
-LastEditTime: 2020-11-07 08:46:22
+LastEditTime: 2021-01-04 10:30:54
 LastEditors: hanyu
 Description: get gae/advantage
 FilePath: /test_ppo/utils/get_gaes.py
@@ -11,6 +11,11 @@ import copy
 
 
 def get_gaes(deltas, rewards, state_values, next_state_values, GAMMA, LAMBDA):
+    '''
+    description: using Generalized Advantage Estimator estimate advantange
+    param {*}
+    return {*}
+    '''
     assert (deltas is not None) or ((rewards is not None) and (
         state_values is not None) and (next_state_values is not None))
 
