@@ -1,4 +1,3 @@
-
 """
 Author: hanyu
 Date: 2020-12-29 14:34:34
@@ -54,11 +53,11 @@ flags.DEFINE_string(
 
 flags.DEFINE_bool("use_stage", True, "whether to use tf.contrib.staging")
 
-flags.DEFINE_integer("use_rmc", 0, "whether to use rmcrnn instead of lstm")
+flags.DEFINE_integer("use_rmc", 0, "whether to use rmcrnn(Relational Memroy Core RNN) instead of lstm")
 flags.DEFINE_integer("use_hrmc", 1, "whether to use tmp hierarchy rmcrnn")
 flags.DEFINE_integer(
     "use_hrnn", 0, "whether to use tmp hierarchy rnn (lstm+rmc)")
-flags.DEFINE_bool("use_icm", False, "whether to use icm during training")
+flags.DEFINE_bool("use_icm", False, "whether to use icm(Intrinsic Curiosity Module) during training")
 flags.DEFINE_bool("use_coex", False, "whether to use coex adm during training")
 flags.DEFINE_bool("use_reward_prediction", True,
                   "whether to use reward prediction")
@@ -112,6 +111,40 @@ flags.DEFINE_integer(
 flags.DEFINE_integer('nof_server_gpus', 1, 'number of gpus for training')
 flags.DEFINE_integer('nof_evaluator', 1, 'number of cpus for training')
 
+
+def build_learner(predatas, postdatas, act_space, num_frames):
+    '''
+    description: builder the learner
+    param {*}
+    return {
+        Tensor: number of frames
+        Tensor: number of global step
+    }
+    ''' 
+    global_step = tf.train.get_or_create_global_step()
+    init_lr = FLAGS.init_lr
+    decay = FLAGS.lr_decay
+    warmup_steps = FLAGS.warmup_steps
+    use_rmc = FLAGS.use_rmc
+    use_hrmc = FLAGS.use_hrmc
+    use_hrnn = FLAGS.use_hrnn
+    use_icm = FLAGS.use_icm
+    use_coex = FLAGS.use_coex
+    use_reward_prediction = FLAGS.use_reward_prediction
+    after_rnn = FLAGS.after_rnn
+    use_pixel_control = FLAGS.use_pixel_control
+    use_pixel_reconstruction = FLAGS.use_pixel_reconstruction
+    pq_kl_coef = FLAGS.pq_kl_coef
+    pq_kl_coef = FLAGS.p_kl_coef
+
+    global_step_float = tf.cast(global_step, tf.float32)
+
+    lr = tf.train.polynomial_decay(
+        init_lr,
+        global_step,
+        FLAGS.total_environment_frames // (FLAGS.batch_size * FLAGS.seqlen),
+        init_lr / 10.
+    )
 
 def build_policy_evaluator(kwargs):
     """
@@ -225,11 +258,59 @@ def train():
 
     sess = tf.Session(config=config)
 
+    # Start a Thread to implement QueueReader
+    # get data from data_collector, then enqueue into segBuffer continuously 
     reader = QueueReader(
-        
+        sess=sess,
+        global_queue=segBuffer,
+        data_collector=data_collector,
+        keys=keys,
+        dtypes=dtypes,
+        shapes=shapes
     )
+    reader.daemon = True
+    reader.start()
 
+    dequeued = segBuffer.dequeue_many(FLAGS.batch_size)
+    pre_placeholders, post_placeholders = dict(), dict()
+    for k, v in dequeued.items():
+        if k == 'state_in':
+            pre_placeholders = v
+        else:
+            # notes TODO
+            pre_placeholders[k], post_placeholders = tf.split(
+                v, [FLAGS.burn_in, FLAGS.seqlen], axis=1
+            )
+    prekeys = list(pre_placeholders.keys())
+    postkeys = list(post_placeholders.keys())
 
+    # count frame&total steps and summary into tensorboard
+    num_frames = tf.get_variable(
+        'num_environment_frames',
+        initializer=tf.zeros_initializer(),
+        shape=[],
+        dtype=tf.int32,
+        trainable=False
+    )
+    tf.summary.scalar("num_frames", num_frames)
+    global_step = tf.train.get_or_create_global_step()
+
+    dur_time_tensor = tf.placeholder(dtype=tf.float32)
+    tf.summary.scalar("time_per_step", dur_time_tensor)
+
+    # set stage_op and build learner
+    with tf.device('/gpu'):
+        if FLAGS.use_stage:
+            # TODO
+            pass
+        else:
+            stage_op = []
+            pre_datas, post_datas = pre_placeholders, post_placeholders
+
+        act_space = FLAGS.act_space
+        num_frames_and_train, global_step_and_train = build_learner(
+
+        )
 
 def main():
     if FLAGS.mode == 'train':

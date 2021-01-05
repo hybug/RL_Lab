@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2020-12-24 11:48:45
-LastEditTime: 2020-12-30 13:19:59
+LastEditTime: 2021-01-05 06:34:34
 LastEditors: hanyu
 Description: Rollout Collector
 FilePath: /test_ppo/ray_helper/rollout_collector.py
@@ -109,7 +109,8 @@ class RolloutCollector:
             timeout: The maximum amount of time in seconds to wait before returning.
             kwargs:
             }
-        return {A list of ready object refs(data generator, _inf_server.sample().remote())}
+        return {A generator of returning ready object refs
+                (data generator, _inf_server.sample().remote())}
         '''
         working_obj_ids = []
         # flags about the worker whether idle
@@ -295,6 +296,7 @@ class QueueReader(Thread):
                 feed_dict = {
                     self.placeholders[i]: seg[key] for i, key in enumerate(self.keys)
                 }
+                # enqueue into tf.FIFOQueue
                 self.sess.run(self.enqueue_op, feed_dict)
 
         def run(self):
