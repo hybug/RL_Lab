@@ -53,11 +53,13 @@ flags.DEFINE_string(
 
 flags.DEFINE_bool("use_stage", True, "whether to use tf.contrib.staging")
 
-flags.DEFINE_integer("use_rmc", 0, "whether to use rmcrnn(Relational Memroy Core RNN) instead of lstm")
+flags.DEFINE_integer(
+    "use_rmc", 0, "whether to use rmcrnn(Relational Memroy Core RNN) instead of lstm")
 flags.DEFINE_integer("use_hrmc", 1, "whether to use tmp hierarchy rmcrnn")
 flags.DEFINE_integer(
     "use_hrnn", 0, "whether to use tmp hierarchy rnn (lstm+rmc)")
-flags.DEFINE_bool("use_icm", False, "whether to use icm(Intrinsic Curiosity Module) during training")
+flags.DEFINE_bool("use_icm", False,
+                  "whether to use icm(Intrinsic Curiosity Module) during training")
 flags.DEFINE_bool("use_coex", False, "whether to use coex adm during training")
 flags.DEFINE_bool("use_reward_prediction", True,
                   "whether to use reward prediction")
@@ -93,7 +95,7 @@ flags.DEFINE_float("ppo_clip", 0.2, "clip of ppo loss")
 flags.DEFINE_float("gamma", 0.99, "discount rate")
 flags.DEFINE_float("pi_coef", 10.0, "weight of policy fn loss")
 flags.DEFINE_float("vf_coef", 1.0, "weight of value fn loss")
-flags.DEFINE_float("ent_coef", 1.0, "weight of entropy loss")
+flags.DEFINE_float("entropy_coeff", 1.0, "weight of entropy loss")
 flags.DEFINE_bool("zero_init", False, "whether to zero init initial state")
 flags.DEFINE_float("grad_clip", 40.0, "global grad clip")
 
@@ -111,6 +113,7 @@ flags.DEFINE_integer(
 flags.DEFINE_integer('nof_server_gpus', 1, 'number of gpus for training')
 flags.DEFINE_integer('nof_evaluator', 1, 'number of cpus for training')
 
+Model = warp_Model()
 
 def build_learner(predatas, postdatas, act_space, num_frames):
     '''
@@ -120,7 +123,7 @@ def build_learner(predatas, postdatas, act_space, num_frames):
         Tensor: number of frames
         Tensor: number of global step
     }
-    ''' 
+    '''
     global_step = tf.train.get_or_create_global_step()
     init_lr = FLAGS.init_lr
     decay = FLAGS.lr_decay
@@ -145,6 +148,39 @@ def build_learner(predatas, postdatas, act_space, num_frames):
         FLAGS.total_environment_frames // (FLAGS.batch_size * FLAGS.seqlen),
         init_lr / 10.
     )
+    is_warmup = tf.cast(global_step_float < warmup_steps, tf.float32)
+    lr = is_warmup * global_step_float / warmup_steps * init_lr + \
+        (1.0 - is_warmup) * (init_lr * (1.0 - decay) + lr * decay)
+    optimizer = tf.train.AdamOptimizer(lr)
+
+    entropy_coeff = tf.train.polynomial_decay(
+        FLAGS.entropy_coeff,
+        global_step,
+        FLAGS.total_environment_frames // (FLAGS.batch_size * FLAGS.seqlen),
+        FLAGS.entropy_coeff / 10.
+    )
+
+    if FLAGS.zero_init:
+        pre["state_in"] = tf.zeros_like(pre["state_in"])
+
+    if use_hrnn:
+        # TODO
+        pass
+    elif use_hrmc:
+        # TODO
+        pass
+    elif use_rmc:
+        # TODO
+        pass
+    else:
+        rnn = tf.compat.v1.keras.layers.LSTM(
+            256, return_sequence=True, return_state=True, name='lstm'
+        )
+    pre_model = Model(
+
+    )
+
+
 
 def build_policy_evaluator(kwargs):
     """
