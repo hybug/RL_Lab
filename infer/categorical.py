@@ -1,19 +1,19 @@
 '''
 Author: hanyu
 Date: 2021-01-08 09:19:14
-LastEditTime: 2021-01-08 09:33:28
+LastEditTime: 2021-01-08 09:36:04
 LastEditors: hanyu
 Description: categorical logits
 FilePath: /test_ppo/infer/categorical.py
 '''
 
 import tensorflow as tf
-from utils import
+from utils.get_shape import get_shape
 
 
 def categorical(logits):
     '''
-    description: draw samples from a categorical distribution which 
+    description: draw samples from a categorical distribution which
                  come from logits.
     param {logits[Tensor]}
     return {list: The drawn samples of shape [batch_size, 1]}
