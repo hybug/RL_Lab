@@ -30,7 +30,7 @@ Seg = namedtuple("Seg", ["s", "a", "a_logits",
 
 def _warp_env():
     import random
-    from utils import get_gaes
+    from utils.get_gaes import get_gaes
     import gym_super_mario_bros
     from PIL import Image
     from gym_super_mario_bros.actions import SIMPLE_MOVEMENT, COMPLEX_MOVEMENT

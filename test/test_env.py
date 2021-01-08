@@ -13,7 +13,7 @@ import numpy as np
 from gym_super_mario_bros.actions import COMPLEX_MOVEMENT, SIMPLE_MOVEMENT
 from nes_py.wrappers import JoypadSpace
 from PIL import Image
-from utils import get_gaes
+from utils.get_gaes import get_gaes
 from examples.PPO_super_mario_bros.env import padding, Seg
 
 
