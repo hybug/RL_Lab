@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-01-06 10:13:41
-LastEditTime: 2021-01-08 12:18:24
+LastEditTime: 2021-01-09 09:31:12
 LastEditors: hanyu
 Description: policy network of PPO
 FilePath: /test_ppo/examples/PPO_super_mario_bros/policy_graph.py
@@ -148,6 +148,7 @@ def warp_Model():
                 image = tf.nn.relu(image)
 
                 new_shape = get_shape(image)
+                # the batch_size & seqlen dimensions remain the same
                 image_feature = tf.reshape(
                     image, [shape[0], shape[1], new_shape[1], new_shape[2], new_shape[3]])
 

@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2020-11-06 13:04:12
-LastEditTime: 2021-01-04 12:38:28
+LastEditTime: 2021-01-09 09:07:08
 LastEditors: hanyu
 Description: environment
 FilePath: /test_ppo/examples/PPO_super_mario_bros/env.py
@@ -218,13 +218,13 @@ def _warp_env():
             if self.done or force:
                 if self.done:
                     # using Generalized Advantage Estimator estimate Advantage
-                    gaes, _ = get_gaes.get_gaes(None, self.r, self.v_cur,
-                                                self.v_cur[1:] + [0], 0.99, 0.95)
+                    gaes, _ = get_gaes(None, self.r, self.v_cur,
+                                       self.v_cur[1:] + [0], 0.99, 0.95)
                     seg = Seg(self.s, self.a, self.a_logits, self.r,
                               gaes, self.v_cur, self.state_in)
                     return self.postprocess(seg)
                 if force and len(self.r) > 1:
-                    gaes, _ = get_gaes.get_gaes(
+                    gaes, _ = get_gaes(
                         None, self.r[:-1], self.v_cur[:-1], self.v_cur[1:], 0.99, 0.95)
                     seg = Seg(self.s[:-1], self.a[:-1], self.a_logits[:-1], self.r[:-1], gaes,
                               self.v_cur[:-1], self.state_in[:-1])
@@ -260,6 +260,8 @@ def _warp_env():
             if seg is not None:
                 while len(seg[0]) > burn_in:
                     next_seg = dict()
+                    # input: (121(depends on done timing), 84, 84, frames)
+                    # output: (seqlen, 84, 84, frames)
                     next_seg["s"] = padding(seg.s[:seqlen], seqlen, np.float32)
                     next_seg["a"] = padding(
                         seg.a[1:seqlen + 1], seqlen, np.int32)
@@ -340,9 +342,11 @@ def _warp_env():
             '''
             feed_dict = dict()
             feed_dict[model.s_t] = [[env.get_state()] for env in self.envs]
-            feed_dict[model.previous_actions] = [[env.get_act()] for env in self.envs]
+            feed_dict[model.previous_actions] = [[env.get_act()]
+                                                 for env in self.envs]
             feed_dict[model.prev_r] = [[env.r[-1]] for env in self.envs]
-            feed_dict[model.state_in] = [env.get_state_in() for env in self.envs]
+            feed_dict[model.state_in] = [env.get_state_in()
+                                         for env in self.envs]
             return feed_dict
 
     return Envs

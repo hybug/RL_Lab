@@ -115,6 +115,7 @@ flags.DEFINE_integer('nof_evaluator', 1, 'number of cpus for training')
 
 Model = warp_Model()
 
+
 def build_learner(predatas, postdatas, act_space, num_frames):
     '''
     description: builder the learner
@@ -161,7 +162,7 @@ def build_learner(predatas, postdatas, act_space, num_frames):
     )
 
     if FLAGS.zero_init:
-        pre["state_in"] = tf.zeros_like(pre["state_in"])
+        predatas["state_in"] = tf.zeros_like(predatas["state_in"])
 
     if use_hrnn:
         # TODO
@@ -176,10 +177,10 @@ def build_learner(predatas, postdatas, act_space, num_frames):
         rnn = tf.compat.v1.keras.layers.LSTM(
             256, return_sequence=True, return_state=True, name='lstm'
         )
-    pre_model = Model(
+    pre_model = Model(act_space, rnn, use_rmc, use_hrmc or use_hrnn, use_reward_prediction,
+                      after_rnn, use_pixel_control, use_pixel_reconstruction, 'agent', **predatas)
 
-    )
-
+    postdatas['state_in'] = tf.stop_gradient(pre_model.state_out)
 
 
 def build_policy_evaluator(kwargs):
@@ -307,6 +308,16 @@ def train():
     reader.daemon = True
     reader.start()
 
+    # s_t: (batch_size, seqlen, 84, 84, frames)
+    # a: (batch_size, seqlen)
+    # prev_a: (batch_size, seqlen)
+    # a_logits: (batch_size, seqlen, act_space)
+    # r: (batch_size, seqlen)
+    # prev_r: (batch_size, seqlen)
+    # adv: (batch_size, seqlen)
+    # v_cur: (batch_size, seqlen)
+    # state_in: (batch_size, state_size)
+    # slots: (batch_size, seqlen)
     dequeued = segBuffer.dequeue_many(FLAGS.batch_size)
     pre_placeholders, post_placeholders = dict(), dict()
     for k, v in dequeued.items():
