@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-01-04 08:25:44
-LastEditTime: 2021-01-04 12:40:21
+LastEditTime: 2021-01-09 09:01:54
 LastEditors: hanyu
 Description: test Env class
 FilePath: /test_ppo/test/test_env.py
@@ -196,13 +196,13 @@ class Env(object):
     def get_history(self, force=False):
         if self.done or force:
             if self.done:
-                gaes, _ = get_gaes.get_gaes(None, self.r, self.v_cur,
-                                            self.v_cur[1:] + [0], 0.99, 0.95)
+                gaes, _ = get_gaes(None, self.r, self.v_cur,
+                                   self.v_cur[1:] + [0], 0.99, 0.95)
                 seg = Seg(self.s, self.a, self.a_logits, self.r,
                           gaes, self.v_cur, self.state_in)
                 return self.postprocess(seg)
             if force and len(self.r) > 1:
-                gaes = get_gaes.get_gaes(
+                gaes = get_gaes(
                     None, self.r[:-1], self.v_cur[:-1], self.v_cur[1:], 0.99, 0.95)[0]
                 seg = Seg(self.s[:-1], self.a[:-1], self.a_logits[:-1], self.r[:-1], gaes,
                           self.v_cur[:-1], self.state_in[:-1])
@@ -262,7 +262,7 @@ class Env(object):
 def test_main():
     test_env = Env(act_space=12,
                    act_repeats=[1],
-                   frames=1,
+                   frames=64,
                    state_size=256*2,
                    seqlen=32,
                    burn_in=32,
