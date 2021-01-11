@@ -182,6 +182,14 @@ def build_learner(predatas, postdatas, act_space, num_frames):
 
     postdatas['state_in'] = tf.stop_gradient(pre_model.state_out)
 
+    post_model = Model(act_space, rnn, use_rmc, use_hrmc or use_hrnn, use_reward_prediction,
+                       after_rnn, use_pixel_control, use_pixel_reconstruction, 'agent', **postdatas)
+    
+    tf.summary.scalar('adv_mean', post_model.adv_mean)
+    tf.summary.scalar('adv_std', post_model.adv_std)
+
+    losses = dPPOcC()
+
 
 def build_policy_evaluator(kwargs):
     """
