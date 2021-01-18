@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-01-08 09:19:14
-LastEditTime: 2021-01-08 09:36:04
+LastEditTime: 2021-01-18 12:54:27
 LastEditors: hanyu
 Description: categorical logits
 FilePath: /test_ppo/infer/categorical.py
@@ -22,5 +22,5 @@ def categorical(logits):
     if len(shape) > 2:
         logits = tf.reshape(logits, shape=[-1, shape[-1]])
     samples = tf.random.categorical(logits, 1)
-    samples = tf.reshape(sampels, shape=[:-1] + [1])
+    samples = tf.reshape(samples, shape=shape[:-1] + [1])
     return samples
