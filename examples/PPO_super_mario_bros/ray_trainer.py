@@ -14,7 +14,7 @@ import time
 
 import ray
 import tensorflow as tf
-from algorithm import dPPOcC
+from algorithm.dPPOcC import dPPOcC
 from module import RMCRNN, KL_from_gaussians, TmpHierRMCRNN, TmpHierRNN, coex
 from module import entropy_from_logits as entropy
 from module import icm, mse
