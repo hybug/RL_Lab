@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-01-11 13:14:01
-LastEditTime: 2021-01-18 13:13:56
+LastEditTime: 2021-01-22 08:43:28
 LastEditors: hanyu
 Description: important sampling
 FilePath: /test_ppo/module/ImportantSampling.py
@@ -12,12 +12,21 @@ import tensorflow as tf
 def important_sampling(log_p, log_old_p=None, clip_1=None, clip_2=None):
     '''
     description: get the important sampling ratio from log_p*log_old_p
-    param {*}
-    return {*}
+    param {
+        log_p: log of current probability distribution
+        log_old_p: log of last probability distribution
+        clip_1: the max clip value of ratio
+        clip_2: the min clip value of ratio
+    }
+    return {
+        Tensor: the ratio of two different prob distribution
+    }
     '''
     if log_old_p is None:
         log_old_p = log_p
 
+    # log_p, log_old_p = log(p), log(old_p)
+    # ratio = exp(log_p - log_old_p) = exp(log(p/old_p)) = p / old_p
     log_ratio = log_p - \
         tf.stop_gradient(tf.maximum(log_old_p, tf.math.log(1e-8)))
     ratio = tf.exp(log_ratio)
@@ -44,6 +53,11 @@ def important_sampling(log_p, log_old_p=None, clip_1=None, clip_2=None):
 
 
 def IS_from_logits(policy_logits, action, behavior_logits=None, clip_1=None, clip_2=None):
+    '''
+    description: get important sampling ration from action, policy_logits and behavior_logits
+    param {*}
+    return {*}
+    '''
     log_p = tf.nn.sparse_softmax_cross_entropy_with_logits(
         labels=action, logits=policy_logits
     )

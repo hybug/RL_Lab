@@ -1,14 +1,14 @@
 '''
 Author: hanyu
 Date: 2021-01-11 13:10:43
-LastEditTime: 2021-01-11 13:16:07
+LastEditTime: 2021-01-22 08:24:06
 LastEditors: hanyu
 Description: distributed PPO clip algorithm
 FilePath: /test_ppo/algorithm/dPPOc.py
 '''
 
 import tensorflow as tf
-from module import IS_from_logits
+from module.ImportantSampling import IS_from_logits
 
 
 def dPPOc(action, policy_logits, behavior_logits, advantage, clip):
