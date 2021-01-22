@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-01-11 13:10:43
-LastEditTime: 2021-01-22 09:43:36
+LastEditTime: 2021-01-22 10:13:16
 LastEditors: hanyu
 Description: distributed PPO clip algorithm
 FilePath: /test_ppo/algorithm/dPPOc.py
@@ -14,7 +14,10 @@ from module.ImportantSampling import IS_from_logits
 def dPPOc(action, policy_logits, behavior_logits, advantage, clip):
     '''
     description: get the clipped ppo loss
-    param {*}
+    param {
+        policy_logtis: action logits from actor net
+        behavior_logits: action logits from the segs
+    }
     return {*}
     '''
     ratio = IS_from_logits(

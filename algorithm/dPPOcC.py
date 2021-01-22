@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-01-22 09:44:38
-LastEditTime: 2021-01-22 09:52:10
+LastEditTime: 2021-01-22 09:57:21
 LastEditors: hanyu
 Description: algorithm
 FilePath: /test_ppo/algorithm/dPPOcC.py
@@ -14,8 +14,8 @@ from module.mse import mse
 PPOcCloss = namedtuple('PPOcCloss', ['p_loss', 'v_loss'])
 
 
-def dPPOcC(act, policy_logits, behavior_logits, advantage, policy_clip, vf, vf_target, value_clip, old_vf):
-    a_loss = dPPOc(action=act,
+def dPPOcC(action, policy_logits, behavior_logits, advantage, policy_clip, vf, vf_target, value_clip, old_vf):
+    a_loss = dPPOc(action=action,
                    policy_logits=policy_logits,
                    behavior_logits=behavior_logits,
                    advantage=advantage,
