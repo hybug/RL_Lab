@@ -9,3 +9,8 @@ gym-super-mario-bros
 # compression packages
 pyarrow
 lz4
+
+# hungry geese env
+kaggle-environments
+requests
+gym
