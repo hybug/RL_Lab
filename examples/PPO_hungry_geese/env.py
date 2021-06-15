@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-06-15 10:24:51
+LastEditTime: 2021-06-15 10:37:47
 LastEditors: hanyu
 Description: environment
 FilePath: /test_ppo/examples/PPO_hungry_geese/env.py
@@ -129,6 +129,15 @@ def _warp_env():
             return state_list
 
         def _extract_reward_info(self, info_list: list) -> list:
+            """extract reward_info and return the training-reward according reward function
+
+            Args:
+                info_list (list): info list returned by step() or reset()
+
+            Returns:
+                list: reward list using for training
+            """
+            # TODO
             reward_list = list()
             for agent_idx, info_dict in enumerate(info_list):
                 r_t = info_dict['reward']
@@ -198,13 +207,17 @@ def _warp_env():
 
         def display_state(self, force=False):
             if self.debug or force:
-                print("=" * (self.columns) + f" Turn {self.turn} " + "=" * (self.columns))
+                print("=" * (self.columns) +
+                      f" Turn {self.turn} " + "=" * (self.columns))
                 print(self.env.render(mode='ansi'))
 
         def display_action(self, actions: dict, force=False):
             if self.debug or force:
+                DIRECT_DICT = {'SOUTH': 'DOWN', 'NORTH': 'UP',
+                               'EAST': 'RIGHT', 'WEST': 'LEFT'}
                 for agent_idx, a in actions.items():
+                    direction = self.actions_label[a].name
                     print(
-                        f'Agent P{agent_idx} action: {self.actions_label[a].name}')
+                        f'Agent P{agent_idx} action: {direction}({DIRECT_DICT[direction]})')
 
     return HungryGeeseEnv
