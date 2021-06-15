@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-06-11 10:06:40
+LastEditTime: 2021-06-15 10:41:19
 LastEditors: hanyu
 Description: environment
 FilePath: /test_ppo/examples/PPO_hungry_geese/env.py
@@ -91,6 +91,14 @@ def _warp_env():
                     'The game is not over...set force True to reset the env.')
 
         def step(self, actions: dict):
+            """step the actions dict and get the return
+
+            Args:
+                actions (dict): actions dict by {agent_idx: action_num}
+
+            Returns:
+                tuple: (observation, reward, terminal, info)
+            """
             info_list = self.env.step(
                 [self.actions_label[a].name for _, a in actions.items()])
 
