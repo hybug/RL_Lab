@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-09 09:23:32
-LastEditTime: 2021-06-11 08:13:24
+LastEditTime: 2021-06-15 10:14:59
 LastEditors: hanyu
 Description: test env
 FilePath: /test_ppo/examples/PPO_hungry_geese/test/test_env.py
@@ -11,7 +11,7 @@ from examples.PPO_hungry_geese.env import _warp_env
 import random
 
 Env = _warp_env()
-env = Env()
+env = Env(debug=True)
 
 obs = env.reset(True)
 is_terminal = False
