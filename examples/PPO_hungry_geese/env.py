@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-06-11 10:06:40
+LastEditTime: 2021-06-15 10:24:51
 LastEditors: hanyu
 Description: environment
 FilePath: /test_ppo/examples/PPO_hungry_geese/env.py
@@ -85,6 +85,10 @@ def _warp_env():
                 #     'status': 'ACTIVE'}, ...]
                 info_list = self.env.reset(self.num_agents)
                 state_list = self._extract_obs_info(info_list)
+                self.turn = 0
+
+                # Display
+                self.display_state()
                 return state_list
             else:
                 config.logging.error(
@@ -93,6 +97,8 @@ def _warp_env():
         def step(self, actions: dict):
             info_list = self.env.step(
                 [self.actions_label[a].name for _, a in actions.items()])
+            self.display_action(actions)
+            self.turn += 1
 
             # extract state info
             state_list = self._extract_obs_info(info_list)
@@ -101,6 +107,9 @@ def _warp_env():
             print(reward_list, info_list[0]['observation']['food'])
             # extract terminal flag info
             status_list = self._extract_status_info(info_list)
+
+            # display
+            self.display_state()
             return state_list, reward_list, status_list == [True] * self.num_agents, {}
 
         def _extract_obs_info(self, info_list: list) -> list:
@@ -186,5 +195,16 @@ def _warp_env():
             self.r[agent_idx].append(r)
             self.v_cur[agent_idx].append(v_cur)
             self.obs[agent_idx].append(obs_dict)
+
+        def display_state(self, force=False):
+            if self.debug or force:
+                print("=" * (self.columns) + f" Turn {self.turn} " + "=" * (self.columns))
+                print(self.env.render(mode='ansi'))
+
+        def display_action(self, actions: dict, force=False):
+            if self.debug or force:
+                for agent_idx, a in actions.items():
+                    print(
+                        f'Agent P{agent_idx} action: {self.actions_label[a].name}')
 
     return HungryGeeseEnv
