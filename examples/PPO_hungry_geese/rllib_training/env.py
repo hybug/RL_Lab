@@ -1,16 +1,17 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-06-16 10:36:17
+LastEditTime: 2021-06-16 12:59:04
 LastEditors: hanyu
 Description: environment
-FilePath: /test_ppo/examples/PPO_hungry_geese/env.py
+FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_training/env.py
 '''
 from os import stat
 import numpy as np
 from enum import Enum, auto
 from collections import namedtuple
 from utils.get_gaes import get_gaes
+from ray.rllib.env.multi_agent_env import MultiAgentEnv
 import config
 
 Seg = namedtuple('Seg', ['s', 'a', 'a_logits',
@@ -29,12 +30,12 @@ class CellState(Enum):
     ANY_GOOSE = auto()
 
 
-def _warp_env():
+def warp_env():
     import gym
     from kaggle_environments.envs.hungry_geese.hungry_geese import Action
     from kaggle_environments import evaluate, make, utils
 
-    class HungryGeeseEnv(gym.Env):
+    class HungryGeeseEnv(MultiAgentEnv):
 
         def __init__(self, worker_idx=-1, debug=False):
             """init the game environments
@@ -51,6 +52,7 @@ def _warp_env():
             self.num_agents = 4
             self.actions_label = [a for a in Action]
             self.num_channels = self.num_agents * 4 + 1
+            self.agents = [f'geese_{i}' for i in range(self.num_agents)]
 
             # init the environment
             self.env = make('hungry_geese', debug=self.debug)
@@ -92,12 +94,12 @@ def _warp_env():
 
                 # Display
                 self.display_state()
-                return state_list
+                return {self.agents[i]: state for i, state in enumerate(state_list)}
             else:
                 config.logging.error(
                     'The game is not over...set force True to reset the env.')
 
-        def step(self, actions: dict, a_logits: list, v_cur: list):
+        def step(self, actions: dict):
             """step the actions dict and get the return
 
             Args:
@@ -121,24 +123,29 @@ def _warp_env():
             self.is_terminal = ([True] * self.num_agents == status_list)
 
             # set segments
-            for agent_idx in range(self.num_agents):
-                self._set_segment(state_list[agent_idx],
-                                  actions[agent_idx],
-                                  a_logits[agent_idx],
-                                  reward_list[agent_idx],
-                                  v_cur[agent_idx],
-                                  agent_idx)
+            # for agent_idx in range(self.num_agents):
+            #     self._set_segment(state_list[agent_idx],
+            #                       actions[agent_idx],
+            #                       a_logits[agent_idx],
+            #                       reward_list[agent_idx],
+            #                       v_cur[agent_idx],
+            #                       agent_idx)
             # get segments
 
             # display
             self.display_state()
-            return segs
+            obs = {self.agents[i]: state for i, state in enumerate(state_list)}
+            reward = {self.agents[i]: reward for i, reward in enumerate(reward_list)}
+            terminal = {self.agents[i]: done for i, done in enumerate(status_list)}
+            terminal['__all__'] = self.is_terminal
+            return obs, reward, terminal, {}
 
         def get_history(self, force=False):
             if self.is_terminal or force:
                 if self.is_terminal:
                     # using Generallized Advantage Estimator estimate advantage
-                    gaes, _ = get_gaes(None, self.r, self.v_cur, self.v_cur[1:], [0], 0.99, 0.95)
+                    gaes, _ = get_gaes(
+                        None, self.r, self.v_cur, self.v_cur[1:], [0], 0.99, 0.95)
                     seg = Seg(self.s, self.a, self.a_logits, self.r,
                               gaes, self.v_cur, self.state_in)
                     return self.postprocess(seg)
@@ -220,7 +227,7 @@ def _warp_env():
             # set food position
             for pos in obs_dict['food']:
                 state[pin, pos] = 1
-            return state.reshape(-1, self.rows, self.columns)
+            return state.reshape(-1, self.rows, self.columns).transpose(1, 2, 0)
 
         def _reset_segment(self):
             """reset the segment
@@ -256,26 +263,5 @@ def _warp_env():
                     direction = self.actions_label[a].name
                     print(
                         f'Agent P{agent_idx} action: {direction}({DIRECT_DICT[direction]})')
-
-    class HungryGeeseEnvs(gym.Env):
-
-        def __init__(self, num_workers: int):
-            self.envs = list()
-            for worker_idx in range(num_workers):
-                env = HungryGeeseEnv(worker_idx=worker_idx)
-                self.envs.append(env)
-
-        def step(self, sess, model):
-            feed_dict = self.get_feed_dict(model)
-
-            # get the predicted action from model
-            a, a_logits, v_cur, state_in = sess.run(
-                [model.current_act, model.current_act_logits,
-                 model.current_value, model.state_out],
-                feed_dict=feed_dict
-            )
-
-            # step the predicted action in turn
-            
 
     return HungryGeeseEnv
