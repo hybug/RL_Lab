@@ -2,7 +2,7 @@
 Author: hanyu
 Date: 2021-06-09 07:18:28
 <<<<<<< HEAD
-LastEditTime: 2021-06-15 10:37:47
+LastEditTime: 2021-06-16 09:02:45
 =======
 LastEditTime: 2021-06-15 10:41:19
 >>>>>>> dev
@@ -49,7 +49,7 @@ def _warp_env():
 
             self.debug = debug
             self.num_previous_observations = 1
-            self.num_agents = 3
+            self.num_agents = 4
             self.actions_label = [a for a in Action]
             self.num_channels = self.num_agents * 4 + 1
 
@@ -98,7 +98,7 @@ def _warp_env():
                 config.logging.error(
                     'The game is not over...set force True to reset the env.')
 
-        def step(self, actions: dict):
+        def step(self, actions: dict, a_logits: list, v_cur: list):
             """step the actions dict and get the return
 
             Args:
@@ -120,6 +120,14 @@ def _warp_env():
             # extract terminal flag info
             status_list = self._extract_status_info(info_list)
 
+            # set segments
+            for agent_idx in range(self.num_agents):
+                self._set_segment(state_list[agent_idx],
+                                  actions[agent_idx],
+                                  a_logits[agent_idx],
+                                  reward_list[agent_idx],
+                                  v_cur[agent_idx],
+                                  agent_idx)
             # display
             self.display_state()
             return state_list, reward_list, status_list == [True] * self.num_agents, {}
@@ -149,10 +157,16 @@ def _warp_env():
             Returns:
                 list: reward list using for training
             """
-            # TODO
             reward_list = list()
             for agent_idx, info_dict in enumerate(info_list):
-                r_t = info_dict['reward']
+                r_raw = info_dict['reward']
+                if r_raw == 201 + 100 * (self.turn - 1):
+                    r_t = -0.1
+                elif r_raw == 201 + 100 * (self.turn - 2):
+                    r_t = -1
+                    assert info_dict['status'] == 'DONE'
+                else:
+                    r_t = 1
                 reward_list.append(r_t)
             return reward_list
 
@@ -209,13 +223,13 @@ def _warp_env():
 
             self.obs = [[] for _ in range(self.num_agents)]
 
-        def _set_segment(self, s, a, a_logits, r, v_cur, obs_dict, agent_idx):
+        def _set_segment(self, s, a, a_logits, r, v_cur, agent_idx):
             self.s[agent_idx].append(s)
             self.a[agent_idx].append(a)
             self.a_logits[agent_idx].append(a_logits)
             self.r[agent_idx].append(r)
             self.v_cur[agent_idx].append(v_cur)
-            self.obs[agent_idx].append(obs_dict)
+            # self.obs[agent_idx].append(obs_dict)
 
         def display_state(self, force=False):
             if self.debug or force:
