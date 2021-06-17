@@ -1,24 +1,23 @@
 '''
 Author: hanyu
 Date: 2021-06-16 12:01:42
-LastEditTime: 2021-06-16 13:17:31
+LastEditTime: 2021-06-17 07:43:30
 LastEditors: hanyu
 Description: train
 FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_training/train.py
 '''
-import ray
-import sys
 import argparse
 import random
+import sys
 
+import ray
+from examples.PPO_hungry_geese.rllib_training.env import warp_env
+from examples.PPO_hungry_geese.rllib_training.MaskedResNetClass import \
+    MaskedResidualNetwork
 from ray import tune
 from ray.rllib import agents
 from ray.rllib.models import ModelCatalog
-from ray.rllib.utils.framework import try_import_tf
 from ray.tune.registry import register_env
-
-from examples.PPO_hungry_geese.rllib_training.env import warp_env
-from examples.PPO_hungry_geese.rllib_training.MaskedResNetClass import MaskedResidualNetwork
 
 
 def env_creator(env_config):

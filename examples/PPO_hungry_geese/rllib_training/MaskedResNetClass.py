@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2020-11-02 09:51:50
-LastEditTime: 2021-06-16 13:16:41
+LastEditTime: 2021-06-17 03:03:08
 LastEditors: hanyu
 Description: restnet with action masked
 FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_training/MaskedResNetClass.py
@@ -144,43 +144,43 @@ class MaskedResidualNetwork(TFModelV2):
         # self.register_variables(self.base_model.variables)
 
     def forward(self, input_dict, state, seq_lens):
-        # explicit cast to float32 needed in eager.
-        model_out, self._value_out = self.base_model(
-            tf.cast(input_dict['obs']['state'], tf.float32)
-        )
-
-        # our last layer is already flat
-        if self.last_layer_is_flattened:
-            raise ValueError
-            avail_actions = input_dict['obs']['avail_actions']
-            action_mask = input_dict['obs']['action_mask']
-            intent_vector = tf.expand_dims(model_out, 1)
-            action_logits = tf.reduce_sum(
-                avail_actions * intent_vector, axis=1)
-            inf_mask = tf.maximum(tf.log(action_mask), tf.float32.min)
-            return action_logits + inf_mask, state
-        # last layer is a n x [1, 1] Conv2D -> Flatten
-        else:
-            model_out = tf.squeeze(model_out, axis=[1, 2])
-            avail_actions = input_dict['obs']['avail_actions']
-            action_mask = input_dict['obs']['action_mask']
-            intent_vector = tf.expand_dims(model_out, 1)
-            action_logits = tf.math.reduce_sum(
-                intent_vector, axis=1)
-            inf_mask = tf.math.maximum(
-                tf.math.log(action_mask), tf.float32.min)
-
-            return action_logits + inf_mask, state
         # # explicit cast to float32 needed in eager.
         # model_out, self._value_out = self.base_model(
-        #     tf.cast(input_dict['obs'], tf.float32)
+        #     tf.cast(input_dict['obs']['state'], tf.float32)
         # )
+
         # # our last layer is already flat
         # if self.last_layer_is_flattened:
-        #     return model_out, state
+        #     raise ValueError
+        #     avail_actions = input_dict['obs']['avail_actions']
+        #     action_mask = input_dict['obs']['action_mask']
+        #     intent_vector = tf.expand_dims(model_out, 1)
+        #     action_logits = tf.reduce_sum(
+        #         avail_actions * intent_vector, axis=1)
+        #     inf_mask = tf.maximum(tf.log(action_mask), tf.float32.min)
+        #     return action_logits + inf_mask, state
         # # last layer is a n x [1, 1] Conv2D -> Flatten
         # else:
-        #     return tf.squeeze(model_out, axis=[1, 2]), state
+        #     model_out = tf.squeeze(model_out, axis=[1, 2])
+        #     avail_actions = input_dict['obs']['avail_actions']
+        #     action_mask = input_dict['obs']['action_mask']
+        #     intent_vector = tf.expand_dims(model_out, 1)
+        #     action_logits = tf.math.reduce_sum(
+        #         intent_vector, axis=1)
+        #     inf_mask = tf.math.maximum(
+        #         tf.math.log(action_mask), tf.float32.min)
+
+        #     return action_logits + inf_mask, state
+        # explicit cast to float32 needed in eager.
+        model_out, self._value_out = self.base_model(
+            tf.cast(input_dict['obs'], tf.float32)
+        )
+        # our last layer is already flat
+        if self.last_layer_is_flattened:
+            return model_out, state
+        # last layer is a n x [1, 1] Conv2D -> Flatten
+        else:
+            return tf.squeeze(model_out, axis=[1, 2]), state
 
     def save(self):
         self.base_model.save('ws.h5')
