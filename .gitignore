@@ -131,3 +131,5 @@ dmypy.json
 .vscode/
 
 temp_base_file
+
+result/

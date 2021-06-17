@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2021-06-15 10:34:08
- * @LastEditTime: 2021-06-16 09:23:13
+ * @LastEditTime: 2021-06-17 07:38:31
  * @LastEditors: hanyu
  * @Description: work docs
  * @FilePath: /test_ppo/docs/work_docs.md
@@ -18,8 +18,10 @@
 #### 1. Done
 1. Apply the reward function: currently +1(eat food), -0.1(nothing), +1(terminal)
 2. History segments implement.
+3. Pause existing development, imple Multi-agent Rllib environment.
 #### 2. Todo
 1. Legal action mask
 2. Distributed Multi-Env
 3. Rllib training environment.
 4. Test the HG env reset-step-reset process.
+

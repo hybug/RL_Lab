@@ -1,18 +1,16 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-06-16 12:59:04
+LastEditTime: 2021-06-17 09:29:35
 LastEditors: hanyu
 Description: environment
 FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_training/env.py
 '''
-from os import stat
 import numpy as np
 from enum import Enum, auto
 from collections import namedtuple
 from utils.get_gaes import get_gaes
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
-import config
 
 Seg = namedtuple('Seg', ['s', 'a', 'a_logits',
                          'r', 'gaes', 'v_cur', 'state_in'])
@@ -33,7 +31,7 @@ class CellState(Enum):
 def warp_env():
     import gym
     from kaggle_environments.envs.hungry_geese.hungry_geese import Action
-    from kaggle_environments import evaluate, make, utils
+    from kaggle_environments import make
 
     class HungryGeeseEnv(MultiAgentEnv):
 
@@ -66,38 +64,40 @@ def warp_env():
             self.action_space = gym.spaces.Discrete(len(self.actions_label))
             self.observation_space = gym.spaces.Box(low=CellState.EMPTY.value,
                                                     high=CellState.ANY_GOOSE.value,
-                                                    shape=(self.num_previous_observations + 1,
-                                                           self.rows,
-                                                           self.columns), dtype=np.uint8)
+                                                    shape=(self.rows,
+                                                           self.columns,
+                                                           self.num_channels), dtype=np.uint8)
 
             # reset the segment buffer
             self._reset_segment()
-            self.is_terminal = False
 
         def reset(self, force=False):
-            if self.is_terminal or force:
-                # [{
-                #     'action': 'NORTH',
-                #     'reward': 0,
-                #     'info': {},
-                #     'observation': {
-                #         'remainingOverageTime': 60,
-                #         'step': 0,
-                #         'geese': [[63], [12], [74], [48]],
-                #         'food': [11, 0],
-                #         'index': 0
-                #     },
-                #     'status': 'ACTIVE'}, ...]
-                info_list = self.env.reset(self.num_agents)
-                state_list = self._extract_obs_info(info_list)
-                self.turn = 0
+            # [{
+            #     'action': 'NORTH',
+            #     'reward': 0,
+            #     'info': {},
+            #     'observation': {
+            #         'remainingOverageTime': 60,
+            #         'step': 0,
+            #         'geese': [[63], [12], [74], [48]],
+            #         'food': [11, 0],
+            #         'index': 0
+            #     },
+            #     'status': 'ACTIVE'}, ...]
+            print('reset start...')
+            info_list = self.env.reset(self.num_agents)
+            self.turn = 0
+            # alive for False, dead for True
+            self.terminal_status_list = [False] * self.num_agents
+            self.last_reward = [101] * self.num_agents
+            self.is_terminal = False
 
-                # Display
-                self.display_state()
-                return {self.agents[i]: state for i, state in enumerate(state_list)}
-            else:
-                config.logging.error(
-                    'The game is not over...set force True to reset the env.')
+            state_list = self._extract_obs_info(info_list)
+
+            # Display
+            self.display_state()
+            print('reset end...')
+            return {self.agents[i]: state for i, state in enumerate(state_list)}
 
         def step(self, actions: dict):
             """step the actions dict and get the return
@@ -108,8 +108,17 @@ def warp_env():
             Returns:
                 tuple: (observation, reward, terminal, info)
             """
+            def __complete_actions(actions):
+                ret = dict()
+                for idx in range(self.num_agents):
+                    if f'geese_{idx}' in actions.keys():
+                        ret[f'geese_{idx}'] = actions[f'geese_{idx}']
+                    else:
+                        ret[f'geese_{idx}'] = 0
+                return ret
+
             info_list = self.env.step(
-                [self.actions_label[a].name for _, a in actions.items()])
+                [self.actions_label[a].name for _, a in __complete_actions(actions).items()])
             self.display_action(actions)
             self.turn += 1
 
@@ -117,7 +126,6 @@ def warp_env():
             state_list = self._extract_obs_info(info_list)
             # extract reward info
             reward_list = self._extract_reward_info(info_list)
-            print(reward_list, info_list[0]['observation']['food'])
             # extract terminal flag info
             status_list = self._extract_status_info(info_list)
             self.is_terminal = ([True] * self.num_agents == status_list)
@@ -134,10 +142,24 @@ def warp_env():
 
             # display
             self.display_state()
-            obs = {self.agents[i]: state for i, state in enumerate(state_list)}
-            reward = {self.agents[i]: reward for i, reward in enumerate(reward_list)}
-            terminal = {self.agents[i]: done for i, done in enumerate(status_list)}
+            # extract multi-agents' return
+            obs = {self.agents[i]: state for i, state in enumerate(
+                state_list) if state is not None}
+            reward = {self.agents[i]: reward for i,
+                      reward in enumerate(reward_list) if reward is not None}
+            terminal = {self.agents[i]: done for i,
+                        done in enumerate(status_list)}
             terminal['__all__'] = self.is_terminal
+
+            # update agents' status & last reward
+            self.terminal_status_list = status_list
+            self.last_reward = [info_list[i]['reward']
+                                for i in range(self.num_agents)]
+            print('return info: ', obs.keys(), reward, terminal)
+            print('raw reward: ', self.last_reward)
+            print('reward:', list(reward.values()))
+            print('terminal: ', self.terminal_status_list)
+            assert obs.keys() == reward.keys()
             return obs, reward, terminal, {}
 
         def get_history(self, force=False):
@@ -163,7 +185,10 @@ def warp_env():
             obs_dict = info_list[0].get('observation')
             for agent_idx, _ in enumerate(info_list):
                 s_t = self.convert_obs_dict(obs_dict, agent_idx)
-                state_list.append(s_t)
+                if not self.terminal_status_list[agent_idx]:
+                    state_list.append(s_t)
+                else:
+                    state_list.append(None)
             return state_list
 
         def _extract_reward_info(self, info_list: list) -> list:
@@ -178,14 +203,23 @@ def warp_env():
             reward_list = list()
             for agent_idx, info_dict in enumerate(info_list):
                 r_raw = info_dict['reward']
-                if r_raw == 201 + 100 * (self.turn - 1):
-                    r_t = -0.1
-                elif r_raw == 201 + 100 * (self.turn - 2):
+                if r_raw == self.last_reward[agent_idx]:
+                    # dead
+                    assert info_list[agent_idx]['status'] == 'DONE'
                     r_t = -1
-                    assert info_dict['status'] == 'DONE'
+                elif r_raw - self.last_reward[agent_idx] == 100:
+                    # do nothing
+                    r_t = -0.1
                 else:
+                    # eat food
+                    print(r_raw, self.last_reward[agent_idx])
+                    assert r_raw % 100 - self.last_reward[agent_idx] % 100 == 1
                     r_t = 1
-                reward_list.append(r_t)
+
+                if not self.terminal_status_list[agent_idx]:
+                    reward_list.append(r_t)
+                else:
+                    reward_list.append(None)
             return reward_list
 
         def _extract_status_info(self, info_list: list) -> list:
@@ -198,6 +232,7 @@ def warp_env():
             return status_list
 
         def convert_obs_dict(self, obs_dict, agent_idx: int):
+            input_dict = dict()
             state = np.zeros((self.num_channels, self.rows *
                               self.columns), dtype=np.float32)
             # set the player position
@@ -227,7 +262,12 @@ def warp_env():
             # set food position
             for pos in obs_dict['food']:
                 state[pin, pos] = 1
-            return state.reshape(-1, self.rows, self.columns).transpose(1, 2, 0)
+            obs = state.reshape(-1, self.rows, self.columns).transpose(1, 2, 0)
+
+            # # avail actions
+            # avail_actions = [0] * len(self.actions_label)
+            input_dict['obs'] = obs
+            return obs
 
         def _reset_segment(self):
             """reset the segment
