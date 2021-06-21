@@ -4,15 +4,15 @@ Date: 2021-06-16 12:01:42
 LastEditTime: 2021-06-17 07:43:30
 LastEditors: hanyu
 Description: train
-FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_training/train.py
+FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_ppo/train.py
 '''
 import argparse
 import random
 import sys
 
 import ray
-from examples.PPO_hungry_geese.rllib_training.env import warp_env
-from examples.PPO_hungry_geese.rllib_training.MaskedResNetClass import \
+from examples.PPO_hungry_geese.rllib_ppo.env import warp_env
+from examples.PPO_hungry_geese.rllib_ppo.MaskedResNetClass import \
     MaskedResidualNetwork
 from ray import tune
 from ray.rllib import agents

@@ -4,7 +4,7 @@ Date: 2020-11-02 09:51:50
 LastEditTime: 2021-06-17 03:03:08
 LastEditors: hanyu
 Description: restnet with action masked
-FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_training/MaskedResNetClass.py
+FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_ppo/MaskedResNetClass.py
 '''
 from ray.rllib.models.tf.misc import normc_initializer
 from ray.rllib.models.tf.tf_modelv2 import TFModelV2

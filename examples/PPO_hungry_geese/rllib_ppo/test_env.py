@@ -1,13 +1,13 @@
 '''
 Author: hanyu
 Date: 2021-06-09 09:23:32
-LastEditTime: 2021-06-17 08:41:08
+LastEditTime: 2021-06-21 03:37:20
 LastEditors: hanyu
 Description: test env
-FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_training/test_env.py
+FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_ppo/test_env.py
 '''
 
-from examples.PPO_hungry_geese.rllib_training.env import warp_env
+from examples.PPO_hungry_geese.rllib_ppo.env import warp_env
 import random
 
 Env = warp_env()

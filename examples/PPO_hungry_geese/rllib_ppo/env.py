@@ -1,10 +1,10 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-06-17 09:29:35
+LastEditTime: 2021-06-21 03:30:09
 LastEditors: hanyu
 Description: environment
-FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_training/env.py
+FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_ppo/env.py
 '''
 import numpy as np
 from enum import Enum, auto
@@ -84,7 +84,6 @@ def warp_env():
             #         'index': 0
             #     },
             #     'status': 'ACTIVE'}, ...]
-            print('reset start...')
             info_list = self.env.reset(self.num_agents)
             self.turn = 0
             # alive for False, dead for True
@@ -96,7 +95,6 @@ def warp_env():
 
             # Display
             self.display_state()
-            print('reset end...')
             return {self.agents[i]: state for i, state in enumerate(state_list)}
 
         def step(self, actions: dict):
@@ -203,18 +201,17 @@ def warp_env():
             reward_list = list()
             for agent_idx, info_dict in enumerate(info_list):
                 r_raw = info_dict['reward']
-                if r_raw == self.last_reward[agent_idx]:
-                    # dead
-                    assert info_list[agent_idx]['status'] == 'DONE'
+                if info_list[agent_idx]['status'] == 'DONE':
+                    # dead or collision
                     r_t = -1
-                elif r_raw - self.last_reward[agent_idx] == 100:
-                    # do nothing
-                    r_t = -0.1
                 else:
-                    # eat food
-                    print(r_raw, self.last_reward[agent_idx])
-                    assert r_raw % 100 - self.last_reward[agent_idx] % 100 == 1
-                    r_t = 1
+                    if r_raw % 100 - self.last_reward[agent_idx] % 100 == 1:
+                        r_t = 1
+                    elif r_raw % 100 - self.last_reward[agent_idx] % 100 == 0:
+                        r_t = -0.1
+                    else:
+                        assert r_raw % 100 - self.last_reward[agent_idx] % 100 == -1
+                        r_t = -0.5
 
                 if not self.terminal_status_list[agent_idx]:
                     reward_list.append(r_t)
