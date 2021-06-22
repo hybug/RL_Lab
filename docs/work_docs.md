@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2021-06-15 10:34:08
- * @LastEditTime: 2021-06-17 07:38:31
+ * @LastEditTime: 2021-06-22 12:26:32
  * @LastEditors: hanyu
  * @Description: work docs
  * @FilePath: /test_ppo/docs/work_docs.md
@@ -25,3 +25,9 @@
 3. Rllib training environment.
 4. Test the HG env reset-step-reset process.
 
+### 2021-06-22
+#### 1. Done
+1. Imple Multi-agent RLllib environments.
+#### 2. Todo
+1. PPO algorithm based on Ray distribution cluster.
+2. Hungery-Geese Environment using ray-ppo.
