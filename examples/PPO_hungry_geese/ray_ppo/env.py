@@ -1,10 +1,10 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-06-16 10:36:17
+LastEditTime: 2021-06-22 12:42:42
 LastEditors: hanyu
 Description: environment
-FilePath: /test_ppo/examples/PPO_hungry_geese/env.py
+FilePath: /test_ppo/examples/PPO_hungry_geese/ray_ppo/env.py
 '''
 from os import stat
 import numpy as np
@@ -276,6 +276,6 @@ def _warp_env():
             )
 
             # step the predicted action in turn
-            
+
 
     return HungryGeeseEnv
