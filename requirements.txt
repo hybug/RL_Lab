@@ -1,6 +1,10 @@
 # core packages
-tensorflow==1.14.0
-ray==1.0.0
+# tensorflow==2.4
+# tensorflow-gpu==2.4
+ray
+ray[tune]
+dm-tree
+opencv-python
 
 # game environments
 pillow
