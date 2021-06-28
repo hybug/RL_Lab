@@ -1,10 +1,10 @@
 '''
 Author: hanyu
 Date: 2021-06-16 12:01:42
-LastEditTime: 2021-06-17 07:43:30
+LastEditTime: 2021-06-21 06:58:50
 LastEditors: hanyu
 Description: train
-FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_ppo/train.py
+FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/train.py
 '''
 import argparse
 import random

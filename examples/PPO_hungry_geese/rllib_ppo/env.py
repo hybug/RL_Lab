@@ -1,10 +1,10 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-06-21 03:30:09
+LastEditTime: 2021-06-21 06:59:06
 LastEditors: hanyu
 Description: environment
-FilePath: /test_ppo/examples/PPO_hungry_geese/rllib_ppo/env.py
+FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/env.py
 '''
 import numpy as np
 from enum import Enum, auto
@@ -153,10 +153,10 @@ def warp_env():
             self.terminal_status_list = status_list
             self.last_reward = [info_list[i]['reward']
                                 for i in range(self.num_agents)]
-            print('return info: ', obs.keys(), reward, terminal)
-            print('raw reward: ', self.last_reward)
-            print('reward:', list(reward.values()))
-            print('terminal: ', self.terminal_status_list)
+            # print('return info: ', obs.keys(), reward, terminal)
+            # print('raw reward: ', self.last_reward)
+            # print('reward:', list(reward.values()))
+            # print('terminal: ', self.terminal_status_list)
             assert obs.keys() == reward.keys()
             return obs, reward, terminal, {}
 
