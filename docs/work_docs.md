@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2021-06-15 10:34:08
- * @LastEditTime: 2021-06-28 08:31:07
+ * @LastEditTime: 2021-06-28 12:14:30
  * @LastEditors: hanyu
  * @Description: work docs
  * @FilePath: /RL_Lab/docs/work_docs.md
@@ -35,7 +35,9 @@
 
 ### 2021-06-28
 #### 1. Done
-1. Start training rllib-model, command: `python examples/PPO_hungry_geese/rllib_ppo/train.py --exper_name rllib-hungrygeese-agent_4-gamma_0.99-reuse_3 --ray_workers 30 --rollout_fragment_length 500 --gamma 0.99 --num_gpus 1 --train_batch_size 15000 --checkpoint_freq 200 --num_sgd_iter 3 --num_policies 4`
+1. Start training rllib-model, command: `python examples/PPO_hungry_geese/rllib_ppo/train.py --exper_name rllib-hungrygeese-agent_4-gamma_0.99-reuse_3 --ray_workers 15 --rollout_fragment_length 2000 --gamma 0.99 --num_gpus 1 --train_batch_size 30000 --checkpoint_freq 200 --num_sgd_iter 3 --num_policies 4`
+2. Decorator for getting&setting Tensorflow models' weights
+3. Two utils functions: `get_tensor_shape`, `draw_categorical_samples`
 #### 2. Todo
 1. PPO algorithm based on Ray distribution cluster.
 2. Hungery-Geese Environment using ray-ppo.

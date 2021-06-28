@@ -1,10 +1,10 @@
 '''
 Author: hanyu
 Date: 2021-06-24 06:46:05
-LastEditTime: 2021-06-24 11:51:45
+LastEditTime: 2021-06-28 08:47:11
 LastEditors: hanyu
-Description: miscellaneous 
-FilePath: /test_ppo/ray_helper/miscellaneous.py
+Description: miscellaneous
+FilePath: /RL_Lab/ray_helper/miscellaneous.py
 '''
 
 
@@ -80,3 +80,5 @@ def tf_model_ws(cls):
                 ops.append(op)
             self.ws_ph_dict = placeholders_dict
             return tf.group(ops)
+
+    return ModelWeightsHelper
