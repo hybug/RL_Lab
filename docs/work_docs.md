@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2021-06-15 10:34:08
- * @LastEditTime: 2021-06-28 12:14:30
+ * @LastEditTime: 2021-06-29 02:05:50
  * @LastEditors: hanyu
  * @Description: work docs
  * @FilePath: /RL_Lab/docs/work_docs.md
@@ -41,4 +41,5 @@
 #### 2. Todo
 1. PPO algorithm based on Ray distribution cluster.
 2. Hungery-Geese Environment using ray-ppo.
-3. policy_model.py warp_model()
+3. Finish Actor-Net and Critic-Net
+4. policy_model.py warp_model()
