@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-22 12:46:08
-LastEditTime: 2021-06-28 13:03:12
+LastEditTime: 2021-06-30 12:10:32
 LastEditors: hanyu
 Description: policy network of PPO
 FilePath: /RL_Lab/examples/PPO_hungry_geese/ray_ppo/policy_model.py
@@ -55,5 +55,20 @@ def wrap_model():
             Returns:
                 tuple: extracted feature
             """
+            # TODO
+            pass
+
+        def actor_net(self, s, scope):
+            """actor network
+
+            Args:
+                s (Tensor): state tensor
+                scope (str): name scope
+            """            
+            input = s
+            with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
+                input = tf.layers.dense(input, )
+        
+        def critic_net():
             # TODO
             pass

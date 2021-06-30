@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-06-21 06:59:06
+LastEditTime: 2021-06-30 07:09:18
 LastEditors: hanyu
 Description: environment
 FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/env.py
@@ -9,7 +9,6 @@ FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/env.py
 import numpy as np
 from enum import Enum, auto
 from collections import namedtuple
-from utils.get_gaes import get_gaes
 from ray.rllib.env.multi_agent_env import MultiAgentEnv
 
 Seg = namedtuple('Seg', ['s', 'a', 'a_logits',
@@ -160,15 +159,6 @@ def warp_env():
             assert obs.keys() == reward.keys()
             return obs, reward, terminal, {}
 
-        def get_history(self, force=False):
-            if self.is_terminal or force:
-                if self.is_terminal:
-                    # using Generallized Advantage Estimator estimate advantage
-                    gaes, _ = get_gaes(
-                        None, self.r, self.v_cur, self.v_cur[1:], [0], 0.99, 0.95)
-                    seg = Seg(self.s, self.a, self.a_logits, self.r,
-                              gaes, self.v_cur, self.state_in)
-                    return self.postprocess(seg)
 
         def _extract_obs_info(self, info_list: list) -> list:
             """extract observation info from info_list
