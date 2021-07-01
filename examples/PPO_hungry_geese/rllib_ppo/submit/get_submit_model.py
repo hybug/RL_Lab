@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-30 12:37:47
-LastEditTime: 2021-06-30 13:04:05
+LastEditTime: 2021-07-01 11:57:11
 LastEditors: hanyu
 Description: get submit model
 FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/submit/get_submit_model.py
@@ -16,7 +16,9 @@ model_path = '/home/jj/workspace/hanyu/RL_Lab/result/hungry_geese/rllib-hungryge
 extra_data = pickle.load(open(model_path, 'rb'))
 objs = pickle.loads(extra_data['worker'])
 
-policy_0_prams = base64.b64encode(bz2.compress(pickle.dumps(objs['state']['policy_0'])))
+policy_0_prams = base64.b64encode(bz2.compress(pickle.dumps(list(objs['state']['policy_0'].values())[:-1])))
 
+ws = pickle.loads(bz2.decompress(base64.b64decode(policy_0_prams)))
 
-print()
+with open('./a.txt', 'wb') as f:
+    f.write(policy_0_prams)
