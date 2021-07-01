@@ -1,16 +1,17 @@
 '''
 Author: hanyu
 Date: 2021-06-09 09:23:32
-LastEditTime: 2021-06-16 09:08:09
+LastEditTime: 2021-07-01 12:52:03
 LastEditors: hanyu
 Description: test env
-FilePath: /test_ppo/examples/PPO_hungry_geese/test/test_env.py
+FilePath: /RL_Lab/examples/PPO_hungry_geese/test/test_env.py
 '''
 
-from examples.PPO_hungry_geese.env import _warp_env
+from examples.PPO_hungry_geese.rllib_ppo.env import warp_env
 import random
+from examples.PPO_hungry_geese.rllib_ppo.submit.agent import agent
 
-Env = _warp_env()
+Env = warp_env()
 env = Env(debug=True)
 
 obs = env.reset(True)
