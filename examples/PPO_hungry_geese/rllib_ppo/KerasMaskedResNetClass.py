@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-07-01 11:18:15
-LastEditTime: 2021-07-01 12:59:11
+LastEditTime: 2021-07-02 08:28:18
 LastEditors: hanyu
 Description: keras model
 FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/KerasMaskedResNetClass.py
@@ -137,7 +137,7 @@ class MaskedResidualNetwork():
         self.base_model = tf.keras.Model(inputs, [conv_out, value_out])
         # self.register_variables(self.base_model.variables)
 
-    def forward(self, input_dict, state, seq_lens):
+    def forward(self, input_dict, state=None):
         model_out, self._value_out = self.base_model(
             tf.cast(input_dict['obs'], tf.float32)
         )
