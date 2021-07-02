@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-06-30 07:09:18
+LastEditTime: 2021-07-02 09:21:53
 LastEditors: hanyu
 Description: environment
 FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/env.py
