@@ -1,11 +1,12 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-07-02 09:21:53
+LastEditTime: 2021-07-07 09:36:36
 LastEditors: hanyu
 Description: environment
 FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/env.py
 '''
+from logging import info
 import numpy as np
 from enum import Enum, auto
 from collections import namedtuple
@@ -49,7 +50,7 @@ def warp_env():
             self.num_agents = 4
             self.actions_label = [a for a in Action]
             self.num_channels = self.num_agents * 4 + 1
-            self.agents = [f'geese_{i}' for i in range(self.num_agents)]
+            self.agents = [f'policy_{i}' for i in range(self.num_agents)]
 
             # init the environment
             self.env = make('hungry_geese', debug=self.debug)
@@ -57,6 +58,7 @@ def warp_env():
             self.columns = self.env.configuration.columns
             self.hunger_rate = self.env.configuration.hunger_rate
             self.min_food = self.env.configuration.min_food
+            self.info_list = None
             # self.trianer = self.env.Train([None, *opponent])
 
             # init the action space & obs space
@@ -84,6 +86,7 @@ def warp_env():
             #     },
             #     'status': 'ACTIVE'}, ...]
             info_list = self.env.reset(self.num_agents)
+            self.info_list = info_list
             self.turn = 0
             # alive for False, dead for True
             self.terminal_status_list = [False] * self.num_agents
@@ -108,14 +111,15 @@ def warp_env():
             def __complete_actions(actions):
                 ret = dict()
                 for idx in range(self.num_agents):
-                    if f'geese_{idx}' in actions.keys():
-                        ret[f'geese_{idx}'] = actions[f'geese_{idx}']
+                    if f'policy_{idx}' in actions.keys():
+                        ret[f'policy_{idx}'] = actions[f'policy_{idx}']
                     else:
-                        ret[f'geese_{idx}'] = 0
+                        ret[f'policy_{idx}'] = -1
                 return ret
 
             info_list = self.env.step(
                 [self.actions_label[a].name for _, a in __complete_actions(actions).items()])
+            self.info_list = info_list
             self.display_action(actions)
             self.turn += 1
 
