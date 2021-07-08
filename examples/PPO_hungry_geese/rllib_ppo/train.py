@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-16 12:01:42
-LastEditTime: 2021-06-21 06:58:50
+LastEditTime: 2021-07-08 08:22:08
 LastEditors: hanyu
 Description: train
 FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/train.py
@@ -112,7 +112,7 @@ def main(args):
         sys.exit()
 
     trainer_config = get_trainer_config(args)
-    stop_config = {'training_iteration': 2000}
+    stop_config = {'training_iteration': 10000}
 
     is_training = True
     while is_training:
