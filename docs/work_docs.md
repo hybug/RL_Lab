@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2021-06-15 10:34:08
- * @LastEditTime: 2021-07-09 10:29:55
+ * @LastEditTime: 2021-07-12 03:29:57
  * @LastEditors: hanyu
  * @Description: work docs
  * @FilePath: /RL_Lab/docs/work_docs.md
@@ -65,3 +65,8 @@
 2. Hungery-Geese Environment using ray-ppo.
 3. Finish Actor-Net and Critic-Net
 4. policy_model.py warp_model()
+
+
+### 2021-07-12
+#### 1. Done
+1. Reward Function V2: increase death penalty. `PYTHONPATH=./ python examples/PPO_hungry_geese/rllib_ppo/train.py --exper_name rllib-hungrygeese-agent_4-gamma_0.99-reuse_1-reward_v2 --ray_workers 15 --rollout_fragment_length 2000 --gamma 0.99 --num_gpus 1 --train_batch_size 30000 --checkpoint_freq 200 --num_sgd_iter 1 --num_policies 4 --model_restore /home/jj/workspace/hanyu/RL_Lab/result/hungry_geese/rllib-hungrygeese-agent_4-gamma_0.99-reuse_3/PPO_HungryGeeseEnv_1c317_00000_0_2021-06-30_07-09-28/checkpoint_001400/checkpoint-1400`
