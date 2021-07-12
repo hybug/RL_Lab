@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-07-07 09:36:36
+LastEditTime: 2021-07-12 02:56:29
 LastEditors: hanyu
 Description: environment
 FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/env.py
@@ -197,7 +197,7 @@ def warp_env():
                 r_raw = info_dict['reward']
                 if info_list[agent_idx]['status'] == 'DONE':
                     # dead or collision
-                    r_t = -1
+                    r_t = -50
                 else:
                     if r_raw % 100 - self.last_reward[agent_idx] % 100 == 1:
                         r_t = 1
