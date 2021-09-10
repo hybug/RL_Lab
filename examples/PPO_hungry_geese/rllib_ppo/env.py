@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2021-06-09 07:18:28
-LastEditTime: 2021-07-12 02:56:29
+LastEditTime: 2021-07-22 09:30:32
 LastEditors: hanyu
 Description: environment
 FilePath: /RL_Lab/examples/PPO_hungry_geese/rllib_ppo/env.py
@@ -87,6 +87,7 @@ def warp_env():
             #     'status': 'ACTIVE'}, ...]
             info_list = self.env.reset(self.num_agents)
             self.info_list = info_list
+            self.geese_length = [0 for _ in range(self.num_agents)]
             self.turn = 0
             # alive for False, dead for True
             self.terminal_status_list = [False] * self.num_agents
@@ -120,6 +121,9 @@ def warp_env():
             info_list = self.env.step(
                 [self.actions_label[a].name for _, a in __complete_actions(actions).items()])
             self.info_list = info_list
+            for agent_idx in range(self.num_agents):
+                if self.info_list[0]['observation']['geese'][agent_idx]:
+                    self.geese_length[agent_idx] = len(self.info_list[0]['observation']['geese'][agent_idx])
             self.display_action(actions)
             self.turn += 1
 
@@ -197,7 +201,7 @@ def warp_env():
                 r_raw = info_dict['reward']
                 if info_list[agent_idx]['status'] == 'DONE':
                     # dead or collision
-                    r_t = -50
+                    r_t = -1
                 else:
                     if r_raw % 100 - self.last_reward[agent_idx] % 100 == 1:
                         r_t = 1
