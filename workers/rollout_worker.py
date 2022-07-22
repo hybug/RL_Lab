@@ -1,7 +1,11 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-LastEditTime: 2022-07-22 18:23:20
+<<<<<<< HEAD
+LastEditTime: 2022-07-22 18:36:38
+=======
+LastEditTime: 2022-07-22 17:03:15
+>>>>>>> 810fa2377b9666d591c1f966de1632dea6d39976
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
