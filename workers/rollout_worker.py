@@ -1,7 +1,11 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
+<<<<<<< HEAD
+LastEditTime: 2022-07-22 18:36:38
+=======
 LastEditTime: 2022-07-22 17:03:15
+>>>>>>> 810fa2377b9666d591c1f966de1632dea6d39976
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
@@ -36,6 +40,7 @@ class RolloutWorker:
     def rollout(self) -> Tuple[dict, dict]:
         if not self._first_reset:
             self._obs, self._rews, self._dones, _ = self.batched_env.reset()
+            self._first_reset = True
 
         obses, rews, dones = list(), list(), list()
         actions, values, logp = list(), list(), list()
@@ -62,10 +67,10 @@ class RolloutWorker:
             self._obs, self._rews, self._dones, infos = self.batched_env.step(
                 actions_t)
 
-            # for info in infos:
-            #     if info is not None:
-            #         ep_rews.append(info['ep_rew'])
-            #         ep_lens.append(info['ep_len'])
+            for info in infos:
+                if info is not None:
+                    ep_rews.append(info['episode_reward'])
+                    ep_lens.append(info['episode_length'])
             # Save obs(t), dones(t), actions(t), logp(t), values(t), rews(t+1) in one stepping
             rews.append(self._rews)
 

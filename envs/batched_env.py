@@ -1,7 +1,11 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:21:01
+<<<<<<< HEAD
+LastEditTime: 2022-07-22 18:23:28
+=======
 LastEditTime: 2022-07-20 16:35:49
+>>>>>>> 810fa2377b9666d591c1f966de1632dea6d39976
 LastEditors: hanyu
 Description: batched env
 FilePath: /RL_Lab/envs/batched_env.py
@@ -102,6 +106,7 @@ class BatchedEnv(BatchedEnvBase):
                             # Reinitialize the episode reward and length after done
                             episode_reward = 0
                             episode_length = 0
+                            obs, _, _, _ = env.reset()
 
                         res_queue.put(((obs, rew, done, info), None))
 

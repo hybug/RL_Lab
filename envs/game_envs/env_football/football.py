@@ -84,6 +84,7 @@ class Football(Game, DictObservation):
 
     def step(self, action):
         # action = self.decode(joint_action)
+        info = None
         info_before = self.step_before_info()
         next_state, reward, self.done, info_after = self.get_next_state(action)
         sorted_next_state = self.get_sorted_next_state(next_state)
@@ -94,7 +95,7 @@ class Football(Game, DictObservation):
         # reward = self.get_reward(reward)
         self.step_cnt += 1
         done = self.is_terminal()
-        return self.all_observes, reward, done, [info_before, info_after]
+        return self.all_observes, reward, done, None
 
     def close(self):
         self.env_core.close()
@@ -132,8 +133,8 @@ class Football(Game, DictObservation):
         if self.step_cnt >= self.max_step:
             self.done = True
 
-        if self.done:
-            self.env_core.close()
+        # if self.done:
+        #     self.env_core.close()
 
         return self.done
 

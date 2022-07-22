@@ -2,7 +2,7 @@ env_params:
   n_player: 2
   # env_name: "football-1_vs_1_easy"
   env_name: "football-11_vs_11_stochastic"
-  num_envs: 2
+  num_envs: 10
   is_obs_continuous: false
   is_act_continuous: false
   obs_type: 
@@ -42,7 +42,7 @@ train_params:
   nn_architecure: "mlp_simple_actor_critic"
 
   epochs: 1000
-  steps_per_epoch: 300
+  steps_per_epoch: 3000
   num_mini_batches: 4
   gamma: 0.99
   lam: 0.97
