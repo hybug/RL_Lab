@@ -1,14 +1,15 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:10:55
-LastEditTime: 2022-07-19 16:12:03
+LastEditTime: 2022-07-22 17:03:31
 LastEditors: hanyu
 Description: categorical model
 FilePath: /RL_Lab/models/categorical_model.py
 '''
 import numpy as np
 import tensorflow as tf
-from alogrithm.ppo.config_ppo import Params
+
+from configs.config_base import Params
 
 
 class CategoricalModel(tf.keras.Model):
@@ -21,7 +22,7 @@ class CategoricalModel(tf.keras.Model):
     ) -> None:
         super().__init__("CategoricalModel")
 
-        self.act_size = params.act_size
+        self.act_size = params.policy.act_size
         self.forward = network['forward']
         self.all_neworkds = network['trainable_networks']
 

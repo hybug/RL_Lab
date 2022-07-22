@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 17:45:25
-LastEditTime: 2022-07-19 18:56:06
+LastEditTime: 2022-07-20 18:18:08
 LastEditors: hanyu
 Description: ppo trainer
 FilePath: /RL_Lab/alogrithm/ppo/ppo_trainer.py
@@ -49,7 +49,7 @@ class PPOTrainer(TrainerBase):
             model_cls = CategoricalModel
         else:
             raise NotImplementedError("Error >> Model not implemented")
-        self.model = model_cls(network=self.network)
+        self.model = model_cls(network=self.network, params=self.params)
 
         # Restore model
         if self.params.trainer.restore_path:
@@ -72,6 +72,7 @@ class PPOTrainer(TrainerBase):
 
         # Initialize the PPO policy
         self.ppo_policy = PPOPolicy(model=self.model,
+                                    params=self.params,
                                     num_envs=self.params.env.num_envs)
 
     def train(self):
@@ -86,7 +87,7 @@ class PPOTrainer(TrainerBase):
             # Logging training information
             self.logger.store(name="Loss Policy", value=losses["policy_loss"])
             self.logger.store(name="Loss Value", value=losses["value_loss"])
-            self.logger.store(name="Loss Entropy", value=losses["entropy"])
+            self.logger.store(name="Loss Entropy", value=losses["entropy_loss"])
             self.logger.store(name="Approx KL", value=losses["approx_kl"])
             self.logger.store(name="Approx Entropy",
                               value=losses["approx_ent"])

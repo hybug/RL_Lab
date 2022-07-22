@@ -1,13 +1,13 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:30:23
-LastEditTime: 2022-07-19 16:18:58
+LastEditTime: 2022-07-20 15:04:54
 LastEditors: hanyu
 Description: env base
 FilePath: /RL_Lab/envs/env_base.py
 '''
 
-from alogrithm.ppo.config_ppo import EnvParams
+from configs.config_base import EnvParams
 from envs.game_envs.env_football.football import Football
 
 

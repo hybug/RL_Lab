@@ -135,3 +135,5 @@ temp_base_file
 result/
 
 submission_test.py
+
+logs/

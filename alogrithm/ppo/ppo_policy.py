@@ -1,16 +1,15 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:53:16
-LastEditTime: 2022-07-19 16:56:44
+LastEditTime: 2022-07-20 18:04:01
 LastEditors: hanyu
 Description: ppo policy
 FilePath: /RL_Lab/alogrithm/ppo/ppo_policy.py
 '''
-from operator import index
-
 import numpy as np
 import tensorflow as tf
 from loguru import logger
+from configs.config_base import Params
 from models.categorical_model import CategoricalModel
 from policy.policy_base import PolicyBase
 
@@ -21,11 +20,14 @@ class PPOPolicy(PolicyBase):
     Args:
         PolicyBase (class): base policy class
     """
-    def __init__(self, model: CategoricalModel, num_envs: int = 1) -> None:
-        super().__init__()
+    def __init__(self,
+                 model: CategoricalModel,
+                 params: Params,
+                 num_envs: int = 1) -> None:
+        super().__init__(params)
 
         self.model = model
-        self.optimizer = tf.keras.optimizer.Adam(learning_rate=self.lr)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.lr)
 
         self.num_envs = num_envs
         self.nbatch = self.num_envs * self.params.trainer.steps_per_epoch
@@ -56,17 +58,17 @@ class PPOPolicy(PolicyBase):
                 break
         return losses
 
-    def _inner_update_loop(self, obses: np.arrray, actions: np.arrray,
-                           advs: np.arrray, rets: np.arrray, logp_t: np.arrray,
+    def _inner_update_loop(self, obses: np.array, actions: np.array,
+                           advs: np.array, rets: np.array, logp_t: np.array,
                            indexs: np.array) -> dict:
         """Make update with random sampled minibatches and return mean kl-divvergence for early breaking
 
         Args:
-            obses (np.arrray): observations
-            actions (np.arrray): actions
-            advs (np.arrray): advantages
-            rets (np.arrray): returns
-            logp_t (np.arrray): logp_t
+            obses (np.array): observations
+            actions (np.array): actions
+            advs (np.array): advantages
+            rets (np.array): returns
+            logp_t (np.array): logp_t
             indexs (np.array): indexs
 
         Returns:
@@ -77,17 +79,17 @@ class PPOPolicy(PolicyBase):
 
         for start in range(0, self.nbatch, self.nbatch_train):
             end = start + self.nbatch_train
-            slices = index[start:end]
+            slices = indexs[start:end]
             losses = self._train_one_step(obses[slices], actions[slices],
                                           advs[slices], logp_t[slices],
                                           rets[slices])
             means.append([
-                losses['policy_loss'], losses['values_loss'],
+                losses['policy_loss'], losses['value_loss'],
                 losses['entropy_loss'], losses['approx_ent'],
                 losses['approx_kl']
             ])
         means = np.asarray(means)
-        means = np.means(means, axis=0)
+        means = np.mean(means, axis=0)
 
         return {
             "policy_loss": means[0],
@@ -98,7 +100,7 @@ class PPOPolicy(PolicyBase):
         }
 
     def _train_one_step(self, obs, act, adv, logp_old, rets):
-        with tf.GradientTape as tape:
+        with tf.GradientTape() as tape:
             _losses = self._loss(obs, logp_old, act, adv, rets)
 
         trainable_variables = self.model.trainable_variables
