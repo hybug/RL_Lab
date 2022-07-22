@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-LastEditTime: 2022-07-19 18:07:24
+LastEditTime: 2022-07-22 17:03:15
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
@@ -45,12 +45,14 @@ class RolloutWorker:
 
             # Model infer actions TODO
             if self.fe:
-                obs = self.fe.encode(self._obs[0][0])
+                obs = self.fe.encode(self._obs)
                 obs = self.fe.concate_observation_from_raw(obs)
+            else:
+                obs = self._obs
             actions_t, logp_t, values_t = self.model.get_action_logp_value(
                 {"obs": obs})
 
-            obses.append(self._obs)
+            obses.append(obs)
             dones.append(self._dones)
             actions.append(actions_t)
             values.append(values_t)
@@ -60,10 +62,10 @@ class RolloutWorker:
             self._obs, self._rews, self._dones, infos = self.batched_env.step(
                 actions_t)
 
-            for info in infos:
-                if info is not None:
-                    ep_rews.append(info['ep_rew'])
-                    ep_lens.append(info['ep_len'])
+            # for info in infos:
+            #     if info is not None:
+            #         ep_rews.append(info['ep_rew'])
+            #         ep_lens.append(info['ep_len'])
             # Save obs(t), dones(t), actions(t), logp(t), values(t), rews(t+1) in one stepping
             rews.append(self._rews)
 
@@ -72,8 +74,11 @@ class RolloutWorker:
         # Or complete the leftover steps& cutoff the trajectory outside step_per_epoch TODO
 
         # Model infer the last actions TODO
+        if self.fe:
+            obs = self.fe.encode(self._obs)
+            obs = self.fe.concate_observation_from_raw(obs)
         actions_t, logp_t, values_t = self.model.get_action_logp_value(
-            {"obs": self._obs})
+            {"obs": obs})
         last_values = values_t
 
         obses = np.array(obses, dtype=np.float32)
@@ -93,16 +98,14 @@ class RolloutWorker:
         for t in reversed(range(self.steps_per_epoch)):
             if t == self.steps_per_epoch - 1:
                 # The last sampling step
-                next_non_terminal = 1.0 - self._dones
+                next_non_terminal = np.array([1 for _ in range(self.batched_env.num_envs)]) - self._dones
                 next_values = last_values
             else:
-                next_non_terminal = 1.0 - dones[t + 1]
+                next_non_terminal = np.array([1 for _ in range(self.batched_env.num_envs)]) - dones[t + 1]
                 next_values = values[t + 1]
 
-            delta = rews[
-                t] + self.gamma * next_values * next_non_terminal - values[t]
-            advs[
-                t] = last_gae_lam = delta + self.gamma * self.lam * next_non_terminal * last_gae_lam
+            delta = rews[t] + self.gamma * next_values * next_non_terminal - values[t]
+            advs[t] = last_gae_lam = delta + self.gamma * self.lam * next_non_terminal * last_gae_lam
 
         rets = advs + values
         # Normalize advantages

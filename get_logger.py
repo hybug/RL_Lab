@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:35:25
-LastEditTime: 2022-07-19 11:35:26
+LastEditTime: 2022-07-20 18:17:08
 LastEditors: hanyu
 Description: get logger
 FilePath: /RL_Lab/get_logger.py
@@ -47,13 +47,13 @@ class TFLogger():
         self.metrics = dict()
         self.summary_writer = tf.summary.create_file_writer(
             self.logger_params.log_dir +
-            f'/_TensorFlow_Training/{self.logger_params.file_name}')
+            f'/logs/_TensorFlow_Training/{self.logger_params.file_name}')
 
     def store(self, name=None, value=None):
         if value is not None:
             if name not in self.metrics.keys():
                 self.metrics[name] = tf.keras.metrics.Mean(name=name)
-            self.metrics[name].update(value)
+            self.metrics[name].update_state(value)
 
     def log_metrics(self, epoch: int):
         logger.info('MEAN METRICS START')

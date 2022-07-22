@@ -1,14 +1,15 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:06:08
-LastEditTime: 2022-07-19 16:06:08
+LastEditTime: 2022-07-20 15:10:54
 LastEditors: hanyu
 Description: cnn
 FilePath: /RL_Lab/networks/cnn.py
 '''
 import tensorflow as tf
 
-from alogrithm.ppo.config_ppo import PolicyParams
+from configs.config_base import PolicyParams
+
 
 
 def cnn_simple(params: PolicyParams):

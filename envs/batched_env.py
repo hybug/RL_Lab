@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:21:01
-LastEditTime: 2022-07-19 16:23:08
+LastEditTime: 2022-07-20 16:35:49
 LastEditors: hanyu
 Description: batched env
 FilePath: /RL_Lab/envs/batched_env.py

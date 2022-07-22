@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:46:16
-LastEditTime: 2022-07-19 17:40:16
+LastEditTime: 2022-07-20 16:14:40
 LastEditors: hanyu
 Description: ppo config
 FilePath: /RL_Lab/alogrithm/ppo/ppo_config.py
@@ -24,7 +24,7 @@ class PPOEnvParams:
     act_box: dict = field(repr=False, default_factory=dict)
 
     # Basic Params
-    num_envs: int = 1
+    num_envs: int = 2
     experiment_name: str = ""
     seed: int = 0
     frame_stacking: bool = False

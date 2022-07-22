@@ -1,14 +1,13 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:19:34
-LastEditTime: 2022-07-19 16:19:34
+LastEditTime: 2022-07-22 17:03:10
 LastEditors: hanyu
 Description: environment
 FilePath: /RL_Lab/envs/env.py
 '''
 
-from alogrithm.ppo.config_ppo import EnvParams
-
+from configs.config_base import EnvParams
 from envs.env_base import EnvBase
 
 

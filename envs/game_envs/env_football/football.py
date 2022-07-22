@@ -6,13 +6,12 @@ import json
 
 import gfootball.env as football_env
 import numpy as np
-from alogrithm.ppo.cfg_ppo import EnvParams
+from configs.config_base import EnvParams
+from envs.game_envs.env_football.obs_interfaces.observation import DictObservation
+from envs.game_envs.env_football.simulators.game import Game
+from envs.game_envs.env_football.utils.box import Box
+from envs.game_envs.env_football.utils.discrete import Discrete
 from get_logger import BASEDIR
-from utils.box import Box
-from utils.discrete import Discrete
-
-from env_football.obs_interfaces.observation import DictObservation
-from env_football.simulators.game import Game
 
 
 class Football(Game, DictObservation):
