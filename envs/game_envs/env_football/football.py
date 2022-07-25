@@ -38,8 +38,9 @@ class Football(Game, DictObservation):
         self.env_core = football_env.create_environment(
             env_name=conf["game_name"],
             stacked=False,
-            representation='raw',
-            logdir=BASEDIR + '/logs/gfootbal_logs/',
+            representation='extracted',
+            rewards="scoring",
+            logdir=BASEDIR + '',
             write_goal_dumps=False,
             write_full_episode_dumps=True,
             render=False,
@@ -92,7 +93,7 @@ class Football(Game, DictObservation):
         self.all_observes = self.current_state
         if isinstance(reward, np.ndarray):
             reward = reward.tolist()
-        # reward = self.get_reward(reward)
+        reward = self.get_reward(reward)
         self.step_cnt += 1
         done = self.is_terminal()
         return self.all_observes, reward, done, None
@@ -112,19 +113,19 @@ class Football(Game, DictObservation):
         observation, reward, done, info = self.env_core.step(action)
         return observation, reward, done, info
 
-    # def get_reward(self, reward):
-    #     r = [0] * self.n_player
-    #     for i in range(self.n_player):
-    #         r[i] = reward[i]
-    #         self.n_return_temp[i] += r[i]
+    def get_reward(self, reward):
+        r = [0] * self.n_player
+        for i in range(self.n_player):
+            r[i] = reward[i]
+            self.n_return_temp[i] += r[i]
 
-    #     # left n_return
-    #     self.n_return[0] = self.n_return_temp[0]
-    #     # right n_return
-    #     self.n_return[self.agent_nums[0]] = self.n_return_temp[
-    #         self.agent_nums[0]]
+        # left n_return
+        self.n_return[0] = self.n_return_temp[0]
+        # right n_return
+        self.n_return[self.agent_nums[0]] = self.n_return_temp[
+            self.agent_nums[0]]
 
-    #     return r
+        return r
 
     def step_before_info(self, info=''):
         return info
@@ -184,26 +185,27 @@ class Football(Game, DictObservation):
         return ob
 
     def get_sorted_next_state(self, next_state):
-        left_team = next_state[:self.agent_nums[0]]
-        right_team = next_state[self.agent_nums[0]:]
-        left_team = sorted(left_team, key=lambda keys: keys['active'])
-        right_team = sorted(right_team, key=lambda keys: keys['active'])
+        # left_team = next_state[:self.agent_nums[0]]
+        # right_team = next_state[self.agent_nums[0]:]
+        # left_team = sorted(left_team, key=lambda keys: keys['active'])
+        # right_team = sorted(right_team, key=lambda keys: keys['active'])
 
-        new_state = []
-        index = 0
-        for item in left_team:
-            each = copy.deepcopy(item)
-            each["controlled_player_index"] = index
-            new_state.append(each)
-            index += 1
+        # new_state = []
+        # index = 0
+        # for item in left_team:
+        #     each = copy.deepcopy(item)
+        #     each["controlled_player_index"] = index
+        #     new_state.append(each)
+        #     index += 1
 
-        for item in right_team:
-            each = copy.deepcopy(item)
-            each["controlled_player_index"] = index
-            new_state.append(each)
-            index += 1
+        # for item in right_team:
+        #     each = copy.deepcopy(item)
+        #     each["controlled_player_index"] = index
+        #     new_state.append(each)
+        #     index += 1
 
-        return new_state
+        # return new_state
+        return next_state
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:07:09
-LastEditTime: 2022-07-22 16:56:34
+LastEditTime: 2022-07-25 16:15:24
 LastEditors: hanyu
 Description: actor critic framework
 FilePath: /RL_Lab/networks/ac.py
@@ -27,11 +27,13 @@ def cnn_simple_actor_critic(params: PolicyParams,
     _critic.add(cnn)
 
     # Concat the last MLP layer to actor
-    _mlp_actor = mlp(params=params, head_name='actor_mlp')
+    _mlp_actor = mlp(params=params,
+                     output_size=params.act_size,
+                     head_name='actor_mlp')
     _actor.add(_mlp_actor)
 
     # Concat the last MLP layer to critic, the output_size is 1
-    _mlp_critic = mlp(params=params, head_name='critic_mlp')
+    _mlp_critic = mlp(params=params, output_size=1, head_name='critic_mlp')
     _critic.add(_mlp_critic)
 
     _actor.build(input_shape=(None, ) + tuple(params.input_shape))
@@ -60,7 +62,9 @@ def mlp_simple_actor_critic(params: PolicyParams,
     # _critic.add(mlp_simple)
 
     # Concat the last MLP layer to actor
-    _mlp_actor = mlp(params=params, output_size=params.act_size, head_name='mlp_actor')
+    _mlp_actor = mlp(params=params,
+                     output_size=params.act_size,
+                     head_name='mlp_actor')
     _actor.add(_mlp_actor)
 
     # Concat the last MLP layer to critic, the output_size is 1

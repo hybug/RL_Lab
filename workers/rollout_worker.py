@@ -2,7 +2,7 @@
 Author: hanyu
 Date: 2022-07-19 16:14:35
 <<<<<<< HEAD
-LastEditTime: 2022-07-22 18:36:38
+LastEditTime: 2022-07-25 16:12:18
 =======
 LastEditTime: 2022-07-22 17:03:15
 >>>>>>> 810fa2377b9666d591c1f966de1632dea6d39976
@@ -21,8 +21,8 @@ class RolloutWorker:
     def __init__(self,
                  batched_env: BatchedEnv,
                  model: tf.keras.Model,
-                 feture_encoder,
                  steps_per_epoch: int,
+                 feture_encoder=None,
                  gamma: float = 0.99,
                  lam: float = 0.97) -> None:
         self.batched_env = batched_env
@@ -53,7 +53,7 @@ class RolloutWorker:
                 obs = self.fe.encode(self._obs)
                 obs = self.fe.concate_observation_from_raw(obs)
             else:
-                obs = self._obs
+                obs = np.array(self._obs)
             actions_t, logp_t, values_t = self.model.get_action_logp_value(
                 {"obs": obs})
 
@@ -103,14 +103,20 @@ class RolloutWorker:
         for t in reversed(range(self.steps_per_epoch)):
             if t == self.steps_per_epoch - 1:
                 # The last sampling step
-                next_non_terminal = np.array([1 for _ in range(self.batched_env.num_envs)]) - self._dones
+                next_non_terminal = np.array(
+                    [1
+                     for _ in range(self.batched_env.num_envs)]) - self._dones
                 next_values = last_values
             else:
-                next_non_terminal = np.array([1 for _ in range(self.batched_env.num_envs)]) - dones[t + 1]
+                next_non_terminal = np.array(
+                    [1
+                     for _ in range(self.batched_env.num_envs)]) - dones[t + 1]
                 next_values = values[t + 1]
 
-            delta = rews[t] + self.gamma * next_values * next_non_terminal - values[t]
-            advs[t] = last_gae_lam = delta + self.gamma * self.lam * next_non_terminal * last_gae_lam
+            delta = rews[
+                t] + self.gamma * next_values * next_non_terminal - values[t]
+            advs[
+                t] = last_gae_lam = delta + self.gamma * self.lam * next_non_terminal * last_gae_lam
 
         rets = advs + values
         # Normalize advantages

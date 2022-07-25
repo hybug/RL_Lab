@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2021-06-15 10:34:08
- * @LastEditTime: 2021-09-10 03:54:30
+ * @LastEditTime: 2022-07-25 11:41:33
  * @LastEditors: hanyu
  * @Description: work docs
  * @FilePath: /RL_Lab/docs/work_docs.md
@@ -94,3 +94,9 @@
 #### 2. Todo
 1. New competition! https://www.kaggle.com/c/lux-ai-2021/overview
 2. I try to start using reinforcement learning to solve LordAI’s problems. My working stuffs on another project, it will be synchronized later
+
+### 2022-07-25
+#### 1. Done
+Copy https://github.com/jw1401/PPO-Tensorflow-2.0
+#### 2. Todo
+Reproducing https://towardsdatascience.com/reproducing-google-research-football-rl-results-ac75cf17190e

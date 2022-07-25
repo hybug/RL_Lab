@@ -1,8 +1,8 @@
 env_params:
   n_player: 2
   # env_name: "football-1_vs_1_easy"
-  env_name: "football-11_vs_11_stochastic"
-  num_envs: 10
+  env_name: "football-11_vs_11_easy_stochastic"
+  num_envs: 1
   is_obs_continuous: false
   is_act_continuous: false
   obs_type: 
@@ -15,36 +15,35 @@ env_params:
   act_box: 
     discrete_n: 19
 policy_params:
-  lr: 0.00001
+  lr: 0.00011879 
   train_iters: 5
   clip_ratio: 0.2
   target_kl: 0.01
-  ent_coef: 0.1
+  ent_coef: 0.00155
   v_coef: 0.5
   clip_grads: 0.5
 
 
   pool_size: [2, 2]
-  mlp_filters: 
-    - 64
-    - 64
-    - 64
-    - 64
+  cnn_filters: 
+    - [32, 3, 1]
+    - [64, 3, 1]
+    - [64, 3, 1]
+    - [64, 3, 1]
   activation: "relu"
-  output_activation: 
+  output_activation: "relu"
   kernel_initializer: "glorot_uniform"
-  input_shape: 
-    - 217
+  input_shape: [72, 96, 4]
   act_size: 19
 
 train_params:
   trainer: "Proximal Policy Optimization"
-  nn_architecure: "mlp_simple_actor_critic"
+  nn_architecure: "cnn_simple_actor_critic"
 
   epochs: 1000
-  steps_per_epoch: 3000
+  steps_per_epoch: 512
   num_mini_batches: 4
-  gamma: 0.99
+  gamma: 0.997
   lam: 0.97
   save_freq: 5
 

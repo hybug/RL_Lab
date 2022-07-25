@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:06:08
-LastEditTime: 2022-07-20 15:10:54
+LastEditTime: 2022-07-25 12:00:37
 LastEditors: hanyu
 Description: cnn
 FilePath: /RL_Lab/networks/cnn.py
@@ -9,7 +9,6 @@ FilePath: /RL_Lab/networks/cnn.py
 import tensorflow as tf
 
 from configs.config_base import PolicyParams
-
 
 
 def cnn_simple(params: PolicyParams):
