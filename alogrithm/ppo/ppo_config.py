@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:46:16
-LastEditTime: 2022-07-20 16:14:40
+LastEditTime: 2022-07-26 14:21:43
 LastEditors: hanyu
 Description: ppo config
 FilePath: /RL_Lab/alogrithm/ppo/ppo_config.py
@@ -64,7 +64,7 @@ class PPOPolicyParams:
     clip_grads: float = 0.5
 
     # Network Hyperparameters
-    cnn_filters: list = field(default_factory=list)
+    resnet_filters: list = field(default_factory=list)
     pool_size: list = field(default_factory=list)
     mlp_filters: list = field(default_factory=list)
     activation: str = "relu"

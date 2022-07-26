@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:10:55
-LastEditTime: 2022-07-22 17:03:31
+LastEditTime: 2022-07-26 14:50:41
 LastEditors: hanyu
 Description: categorical model
 FilePath: /RL_Lab/models/categorical_model.py
@@ -10,9 +10,10 @@ import numpy as np
 import tensorflow as tf
 
 from configs.config_base import Params
+from models.model_base import TFModelBase
 
 
-class CategoricalModel(tf.keras.Model):
+class CategoricalModel(TFModelBase):
     """Categorical Model for Discrete Action Spaces
     """
     def __init__(
@@ -23,8 +24,9 @@ class CategoricalModel(tf.keras.Model):
         super().__init__("CategoricalModel")
 
         self.act_size = params.policy.act_size
-        self.forward = network['forward']
-        self.all_neworkds = network['trainable_networks']
+        self.forward_func = network['forward']
+        self.base_model = network['model']
+        self.register_variables(self.base_model.variables)
 
     def compute_action_from_logits(self, logits):
         """Draw from random categorical distribution
@@ -43,11 +45,11 @@ class CategoricalModel(tf.keras.Model):
         logp = tf.reduce_sum(one_hot * logp_all, axis=-1)
         return logp
 
-    def call(self, inputs):
-        return self.forward(inputs)
+    def forward(self, inputs_dict: dict):
+        return self.forward_func(inputs_dict)
 
     def get_action_logp_value(self, obs):
-        logits, values = self.predict(obs)
+        logits, values = self.forward(obs)
         action = self.compute_action_from_logits(logits)
         logp_t = self.logp(logits, action)
         return np.squeeze(action), np.squeeze(logp_t), np.squeeze(values)

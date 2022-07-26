@@ -1,11 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-<<<<<<< HEAD
-LastEditTime: 2022-07-25 16:12:18
-=======
-LastEditTime: 2022-07-22 17:03:15
->>>>>>> 810fa2377b9666d591c1f966de1632dea6d39976
+LastEditTime: 2022-07-26 15:03:49
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
@@ -132,7 +128,7 @@ class RolloutWorker:
                          dones: np.array, actions: np.array, logp: np.array,
                          values: np.array, advs: np.array,
                          rets: np.array) -> dict:
-        obses = obses.reshape(-1, obses.shape[-1])
+        obses = obses.reshape((-1, ) + obses.shape[-3:])
         return {
             "obses": obses,
             "rews": rews.flatten(),

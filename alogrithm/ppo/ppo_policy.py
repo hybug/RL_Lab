@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:53:16
-LastEditTime: 2022-07-20 18:04:01
+LastEditTime: 2022-07-26 15:05:57
 LastEditors: hanyu
 Description: ppo policy
 FilePath: /RL_Lab/alogrithm/ppo/ppo_policy.py
@@ -103,7 +103,7 @@ class PPOPolicy(PolicyBase):
         with tf.GradientTape() as tape:
             _losses = self._loss(obs, logp_old, act, adv, rets)
 
-        trainable_variables = self.model.trainable_variables
+        trainable_variables = self.model.trainable_variables()
 
         # Get gradients
         grads = tape.gradient(_losses['total_loss'], trainable_variables)

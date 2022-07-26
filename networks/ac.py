@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:07:09
-LastEditTime: 2022-07-25 16:15:24
+LastEditTime: 2022-07-26 14:31:17
 LastEditors: hanyu
 Description: actor critic framework
 FilePath: /RL_Lab/networks/ac.py
@@ -9,10 +9,33 @@ FilePath: /RL_Lab/networks/ac.py
 
 import tensorflow as tf
 from configs.config_base import PolicyParams
-from networks.cnn import cnn_simple
+from networks.cnn import cnn_simple, impala_cnn
 from networks.mlp import mlp
 
 from networks.network_utils import register_network
+
+
+@register_network("impala_cnn_actor_critic")
+def impala_cnn_actor_critic(params: PolicyParams,
+                            name="impala_cnn_actor_critic"):
+    inputs = tf.keras.layers.Input(shape=tuple(params.input_shape),
+                                   name=f"{name}_obs")
+    conv_out = impala_cnn(inputs, params)
+
+    logits_out = tf.keras.layers.Dense(units=params.act_size,
+                                       activation=params.activation,
+                                       name=name + "_logits_out")(conv_out)
+    value_out = tf.keras.layers.Dense(units=1,
+                                      activation=params.activation,
+                                      name=name + "_value_out")(conv_out)
+
+    model = tf.keras.Model(inputs, [logits_out, value_out])
+
+    def forward(inputs: dict):
+        logits, value = model(inputs['obs'])
+        return logits, value
+
+    return {"forward": forward, "model": model}
 
 
 @register_network('cnn_simple_actor_critic')
