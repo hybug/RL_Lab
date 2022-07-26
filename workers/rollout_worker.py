@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-LastEditTime: 2022-07-26 15:03:49
+LastEditTime: 2022-07-26 15:53:42
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
@@ -49,7 +49,7 @@ class RolloutWorker:
                 obs = self.fe.encode(self._obs)
                 obs = self.fe.concate_observation_from_raw(obs)
             else:
-                obs = np.array(self._obs)
+                obs = np.array(self._obs) / 255
             actions_t, logp_t, values_t = self.model.get_action_logp_value(
                 {"obs": obs})
 
@@ -116,6 +116,8 @@ class RolloutWorker:
 
         rets = advs + values
         # Normalize advantages
+        if np.mean(advs) == 0:
+            print()
         advs = (advs - advs.mean()) / (advs.std())
 
         return self._flatten_rollout(obses, rews, dones, actions, logp, values,

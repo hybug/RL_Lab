@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:07:09
-LastEditTime: 2022-07-26 14:31:17
+LastEditTime: 2022-07-26 16:12:55
 LastEditors: hanyu
 Description: actor critic framework
 FilePath: /RL_Lab/networks/ac.py
@@ -23,10 +23,8 @@ def impala_cnn_actor_critic(params: PolicyParams,
     conv_out = impala_cnn(inputs, params)
 
     logits_out = tf.keras.layers.Dense(units=params.act_size,
-                                       activation=params.activation,
                                        name=name + "_logits_out")(conv_out)
     value_out = tf.keras.layers.Dense(units=1,
-                                      activation=params.activation,
                                       name=name + "_value_out")(conv_out)
 
     model = tf.keras.Model(inputs, [logits_out, value_out])

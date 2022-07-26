@@ -37,12 +37,12 @@ class Football(Game, DictObservation):
 
         self.env_core = football_env.create_environment(
             env_name=conf["game_name"],
-            stacked=False,
+            stacked=True,
             representation='extracted',
             rewards="scoring",
             logdir=BASEDIR + '/logs/football_log/',
             write_goal_dumps=False,
-            write_full_episode_dumps=True,
+            write_full_episode_dumps=False,
             render=False,
             dump_frequency=0,
             number_of_left_players_agent_controls=self.agent_nums[0],
@@ -131,8 +131,8 @@ class Football(Game, DictObservation):
         return info
 
     def is_terminal(self):
-        if self.step_cnt >= self.max_step:
-            self.done = True
+        # if self.step_cnt >= self.max_step:
+        #     self.done = True
 
         # if self.done:
         #     self.env_core.close()

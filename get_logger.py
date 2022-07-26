@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:35:25
-LastEditTime: 2022-07-20 18:17:08
+LastEditTime: 2022-07-26 16:21:14
 LastEditors: hanyu
 Description: get logger
 FilePath: /RL_Lab/get_logger.py
@@ -66,7 +66,8 @@ class TFLogger():
                 value = metric.result()
                 logger.info(f'{key}: {value}')
 
-                with self.summary_writer.as_default():
-                    tf.summary.scalar(key, value, step=epoch)
+                if key not in ["Episode Reward", "Episode Length"] or value != 0:
+                    with self.summary_writer.as_default():
+                        tf.summary.scalar(key, value, step=epoch)
                 metric.reset_states()
         logger.info("MEAN METRICS END")

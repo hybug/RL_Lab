@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-20 14:58:57
-LastEditTime: 2022-07-25 15:11:23
+LastEditTime: 2022-07-26 15:47:46
 LastEditors: hanyu
 Description: test ppo trainer
 FilePath: /RL_Lab/tests/test_ppotrainer.py
