@@ -1,21 +1,21 @@
 '''
 Author: hanyu
 Date: 2022-07-19 17:45:25
-LastEditTime: 2022-07-25 16:02:50
+LastEditTime: 2022-07-29 16:44:30
 LastEditors: hanyu
 Description: ppo trainer
 FilePath: /RL_Lab/alogrithm/ppo/ppo_trainer.py
 '''
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 from alogrithm.ppo.ppo_config import PPOParams
 from alogrithm.ppo.ppo_policy import PPOPolicy
 from envs.env_utils import create_batched_env
+from get_logger import BASEDIR, TFLogger
 from models.categorical_model import CategoricalModel
 from networks.network_utils import nn_builder
 from preprocess.feature_encoder.fe_gfootball import FeatureEncoderGFootball
 from trainers.trainer_base import TrainerBase
-from get_logger import BASEDIR, TFLogger
 from workers.rollout_worker import RolloutWorker
 
 
@@ -25,6 +25,7 @@ class PPOTrainer(TrainerBase):
                  working_dir: str = BASEDIR,
                  experiment_name: str = "test") -> None:
         super().__init__(params_config_path)
+        self.experiment_name = experiment_name
 
         # Init trainer params
         self.params = PPOParams(config_file=self.params_config_path)
@@ -99,7 +100,8 @@ class PPOTrainer(TrainerBase):
                 self.logger.store(name="Episode Length", value=episode_len)
 
             # Save model frequency
-            # TODO
+            if (epoch + 1) % self.params.trainer.save_freq == 0:
+                self.model.save(BASEDIR + f"/saved_models/{self.experiment_name}/checkpoint_{epoch}")
 
             self.logger.log_metrics(epoch)
 

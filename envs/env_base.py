@@ -1,22 +1,32 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:30:23
-LastEditTime: 2022-07-20 15:04:54
+LastEditTime: 2022-07-29 16:50:28
 LastEditors: hanyu
 Description: env base
 FilePath: /RL_Lab/envs/env_base.py
 '''
 
 from configs.config_base import EnvParams
-from envs.game_envs.env_football.football import Football
+import gfootball.env as football_env
 
 
 def _init_env(env_params: EnvParams, seed: int, worker_id: int):
 
     if "football" in env_params.env_name:
         env_params.env_name = env_params.env_name.split('-')[-1]
-        env = Football(env_params=env_params, worker_idx=worker_id)
+        # env = Football(env_params=env_params, worker_idx=worker_id)
         env_type = 'football'
+        env = football_env.create_environment(env_name=env_params.env_name,
+                                              stacked=True,
+                                              rewards="scoring,checkpoints",
+                                              write_goal_dumps=False,
+                                              write_full_episode_dumps=False,
+                                              render=False,
+                                              dump_frequency=0)
+
+    elif "gym" in env_params.env_name:
+        pass
     else:
         env = None
         env_type = None
@@ -41,13 +51,13 @@ class EnvBase():
         self._env, self._env_type = _init_env(env_params, self._seed,
                                               worker_id)
 
-        if self._env_type == 'football':
-            self._act_is_discrete = not self._env.is_act_continuous
-            self._obs_is_visual = False
-            self._obs_is_vector = True
-            self._obs_is_grayscale = False
+        # if self._env_type == 'football':
+        #     self._act_is_discrete = not self._env.is_act_continuous
+        #     self._obs_is_visual = False
+        #     self._obs_is_vector = True
+        #     self._obs_is_grayscale = False
 
-            self._act_shape = self._env.action_dim
+        #     self._act_shape = self._env.action_dim
 
     @property
     def env_info(self):

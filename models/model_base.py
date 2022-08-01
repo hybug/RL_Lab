@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-26 11:08:21
-LastEditTime: 2022-07-26 14:57:07
+LastEditTime: 2022-07-29 16:32:34
 LastEditors: hanyu
 Description: model base
 FilePath: /RL_Lab/models/model_base.py
@@ -30,3 +30,15 @@ class TFModelBase:
     def __call__(self, inputs_dict: dict):
         outputs = self.forward(inputs_dict=inputs_dict)
         return outputs
+
+    def save(self, save_path: str):
+        self.base_model.save(save_path)
+
+    def load(self, load_path: str):
+        self.base_model.load(load_path)
+
+        def forward(inputs: dict):
+            logits, value = self.base_model(inputs['obs'])
+            return logits, value
+
+        self.forward_func = forward

@@ -1,1 +1,0 @@
-from .football import *

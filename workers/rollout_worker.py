@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-LastEditTime: 2022-07-26 15:53:42
+LastEditTime: 2022-07-28 18:04:04
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
@@ -64,7 +64,7 @@ class RolloutWorker:
                 actions_t)
 
             for info in infos:
-                if info is not None:
+                if info is not None and "score_reward" not in info.keys():
                     ep_rews.append(info['episode_reward'])
                     ep_lens.append(info['episode_length'])
             # Save obs(t), dones(t), actions(t), logp(t), values(t), rews(t+1) in one stepping
@@ -116,12 +116,10 @@ class RolloutWorker:
 
         rets = advs + values
         # Normalize advantages
-        if np.mean(advs) == 0:
-            print()
-        advs = (advs - advs.mean()) / (advs.std())
+        advs = (advs - advs.mean()) / (advs.std() + 1e-8)
 
         return self._flatten_rollout(obses, rews, dones, actions, logp, values,
-                                     advs, rets), {
+                                     advs, rets, values), {
                                          "episode_rewards": ep_rews,
                                          "episode_lengths": ep_lens
                                      }
@@ -129,7 +127,7 @@ class RolloutWorker:
     def _flatten_rollout(self, obses: np.array, rews: np.array,
                          dones: np.array, actions: np.array, logp: np.array,
                          values: np.array, advs: np.array,
-                         rets: np.array) -> dict:
+                         rets: np.array, prev_vf_out: np.array) -> dict:
         obses = obses.reshape((-1, ) + obses.shape[-3:])
         return {
             "obses": obses,
@@ -139,5 +137,6 @@ class RolloutWorker:
             "logp": logp.flatten(),
             "values": values.flatten(),
             "advs": advs.flatten(),
-            "returns": rets.flatten()
+            "returns": rets.flatten(),
+            "prev_vf_out": prev_vf_out.flatten()
         }

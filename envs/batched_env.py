@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:21:01
-LastEditTime: 2022-07-26 16:29:09
+LastEditTime: 2022-07-29 18:26:32
 LastEditors: hanyu
 Description: batched env
 FilePath: /RL_Lab/envs/batched_env.py
@@ -45,12 +45,12 @@ class BatchedEnv(BatchedEnvBase):
         self._env_fns = env_fns
 
         # Initialize and start worker processes for each env
-        for env_fn in self._env_fns:
+        for idx, env_fn in enumerate(self._env_fns):
             cmd_queue = Queue()
             res_queue = Queue()
             proc = Process(target=self._worker_process,
                            args=(cmd_queue, res_queue,
-                                 cloudpickle.dumps(env_fn)))
+                                 cloudpickle.dumps(env_fn), idx))
             proc.start()
             self._process.append(proc)
             self._command_queues.append(cmd_queue)
@@ -59,7 +59,7 @@ class BatchedEnv(BatchedEnvBase):
     # TODO to be implemented with iter like rllib.rolloutworker
     @staticmethod
     def _worker_process(cmd_queue: Queue, res_queue: Queue,
-                        env_pickled_str: str):
+                        env_pickled_str: str, worker_idx: int):
         """Worker for environment, Implements a loop for waiting and executing commands from the cmd-queue
 
         Args:
@@ -84,8 +84,10 @@ class BatchedEnv(BatchedEnvBase):
                         # Initialize the episode reward and length after reset
                         episode_reward = 0
                         episode_length = 0
-                        obs, rew, done, info = env.reset()
-                        res_queue.put(((obs, rew, done, info), None))
+                        obs = env.reset()
+                        # for _ in range(2):
+                        #     obs, _, _, _ = env.step(5)
+                        res_queue.put(((obs, 0, False, None), None))
 
                     elif cmd == 'step':
                         obs, rew, done, info = env.step(arg)
@@ -102,7 +104,9 @@ class BatchedEnv(BatchedEnvBase):
                             # Reinitialize the episode reward and length after done
                             episode_reward = 0
                             episode_length = 0
-                            obs, _, _, _ = env.reset()
+                            obs = env.reset()
+                            # for _ in range(2):
+                            #     obs, _, _, _ = env.step(5)
 
                         res_queue.put(((obs, rew, done, info), None))
 

@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:10:55
-LastEditTime: 2022-07-26 14:50:41
+LastEditTime: 2022-07-29 11:10:36
 LastEditors: hanyu
 Description: categorical model
 FilePath: /RL_Lab/models/categorical_model.py
@@ -40,9 +40,15 @@ class CategoricalModel(TFModelBase):
         return tf.squeeze(tf.random.categorical(logits, 1), axis=-1)
 
     def logp(self, logits, action):
-        logp_all = tf.nn.log_softmax(logits)
-        one_hot = tf.one_hot(action, depth=self.act_size)
-        logp = tf.reduce_sum(one_hot * logp_all, axis=-1)
+        # logp_all = tf.nn.log_softmax(logits)
+        # one_hot = tf.one_hot(action, depth=self.act_size)
+        # logp = tf.reduce_sum(one_hot * logp_all, axis=-1)
+        # return logp
+        # print(action.shape, logits.shape)
+        # print(action.dtype, logits.dtype)
+        if action.dtype in (tf.float16, tf.float32, tf.float64):
+            action = tf.cast(action, tf.int64)
+        logp = - tf.nn.sparse_softmax_cross_entropy_with_logits(labels=action, logits=logits)
         return logp
 
     def forward(self, inputs_dict: dict):
@@ -55,7 +61,7 @@ class CategoricalModel(TFModelBase):
         return np.squeeze(action), np.squeeze(logp_t), np.squeeze(values)
 
     def entropy(self, logits=None):
-        a0 = logits - tf.reduce_sum(logits, axis=-1, keepdims=True)
+        a0 = logits - tf.reduce_max(logits, axis=-1, keepdims=True)
         exp_a0 = tf.exp(a0)
         z0 = tf.reduce_sum(exp_a0, axis=-1, keepdims=True)
         p0 = exp_a0 / z0

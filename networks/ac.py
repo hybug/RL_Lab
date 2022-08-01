@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:07:09
-LastEditTime: 2022-07-26 16:12:55
+LastEditTime: 2022-07-28 16:32:13
 LastEditors: hanyu
 Description: actor critic framework
 FilePath: /RL_Lab/networks/ac.py
@@ -22,10 +22,13 @@ def impala_cnn_actor_critic(params: PolicyParams,
                                    name=f"{name}_obs")
     conv_out = impala_cnn(inputs, params)
 
+    vf_lantent = tf.keras.layers.Flatten()(conv_out)
+    lantent = tf.keras.layers.Flatten()(conv_out)
+
     logits_out = tf.keras.layers.Dense(units=params.act_size,
-                                       name=name + "_logits_out")(conv_out)
+                                       name=name + "_logits_out")(lantent)
     value_out = tf.keras.layers.Dense(units=1,
-                                      name=name + "_value_out")(conv_out)
+                                      name=name + "_value_out")(vf_lantent)
 
     model = tf.keras.Model(inputs, [logits_out, value_out])
 
@@ -38,69 +41,41 @@ def impala_cnn_actor_critic(params: PolicyParams,
 
 @register_network('cnn_simple_actor_critic')
 def cnn_simple_actor_critic(params: PolicyParams,
-                            name='cnn_sample_actor_critic'):
-    cnn, _ = cnn_simple(params=params)
+                            name='cnn_simple_actor_critic'):
+    inputs = tf.keras.layers.Input(shape=tuple(params.input_shape),
+                                   name=f"{name}_obs")
+    conv_out = cnn_simple(inputs, params)
 
-    # Add CNN into the model
-    _actor = tf.keras.Sequential(name='actor')
-    _critic = tf.keras.Sequential(name='critic')
-    _actor.add(cnn)
-    _critic.add(cnn)
+    logits_out = tf.keras.layers.Dense(units=params.act_size,
+                                       name=name + "_logits_out")(conv_out)
+    value_out = tf.keras.layers.Dense(units=1,
+                                      name=name + "_value_out")(conv_out)
 
-    # Concat the last MLP layer to actor
-    _mlp_actor = mlp(params=params,
-                     output_size=params.act_size,
-                     head_name='actor_mlp')
-    _actor.add(_mlp_actor)
+    model = tf.keras.Model(inputs, [logits_out, value_out])
 
-    # Concat the last MLP layer to critic, the output_size is 1
-    _mlp_critic = mlp(params=params, output_size=1, head_name='critic_mlp')
-    _critic.add(_mlp_critic)
+    def forward(inputs: dict):
+        logits, value = model(inputs["obs"])
+        return logits, value
 
-    _actor.build(input_shape=(None, ) + tuple(params.input_shape))
-    _actor.summary()
-
-    _critic.build(input_shape=(None, ) + tuple(params.input_shape))
-    _critic.summary()
-
-    def forward(input=None):
-        logits = _actor(input['obs'])
-        values = _critic(input['obs'])
-        return logits, values
-
-    return {"forward": forward, "trainable_networks": [_actor, _critic]}
+    return {"forward": forward, "model": model}
 
 
 @register_network('mlp_simple_actor_critic')
 def mlp_simple_actor_critic(params: PolicyParams,
                             name='mlp_simple_actor_critic'):
-    # mlp_simple = mlp(params=params)
+    inputs = tf.keras.layers.Input(shape=tuple(params.input_shape),
+                                   name=f"{name}_obs")
+    mlp_out = mlp(inputs, params)
 
-    # # Add CNN into the model
-    _actor = tf.keras.Sequential(name='actor')
-    _critic = tf.keras.Sequential(name='critic')
-    # _actor.add(mlp_simple)
-    # _critic.add(mlp_simple)
+    logits_out = tf.keras.layers.Dense(units=params.act_size,
+                                       name=name + "_logits_out")(mlp_out)
+    value_out = tf.keras.layers.Dense(units=1,
+                                      name=name + "_value_out")(mlp_out)
 
-    # Concat the last MLP layer to actor
-    _mlp_actor = mlp(params=params,
-                     output_size=params.act_size,
-                     head_name='mlp_actor')
-    _actor.add(_mlp_actor)
+    model = tf.keras.Model(inputs, [logits_out, value_out])
 
-    # Concat the last MLP layer to critic, the output_size is 1
-    _mlp_critic = mlp(params=params, output_size=1, head_name='mlp_critic')
-    _critic.add(_mlp_critic)
+    def forward(inputs: dict):
+        logits, value = model(inputs["obs"])
+        return logits, value
 
-    _actor.build(input_shape=(None, ) + tuple(params.input_shape))
-    _actor.summary()
-
-    _critic.build(input_shape=(None, ) + tuple(params.input_shape))
-    _critic.summary()
-
-    def forward(input=None):
-        logits = _actor(input['obs'])
-        values = _critic(input['obs'])
-        return logits, values
-
-    return {"forward": forward, "trainable_networks": [_actor, _critic]}
+    return {"forward": forward, "model": model}

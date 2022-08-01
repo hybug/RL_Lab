@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:53:16
-LastEditTime: 2022-07-26 15:05:57
+LastEditTime: 2022-07-29 14:55:06
 LastEditors: hanyu
 Description: ppo policy
 FilePath: /RL_Lab/alogrithm/ppo/ppo_policy.py
@@ -51,7 +51,8 @@ class PPOPolicy(PolicyBase):
                                              rollouts["actions"],
                                              rollouts["advs"],
                                              rollouts["returns"],
-                                             rollouts["logp"], indexs)
+                                             rollouts["logp"],
+                                             rollouts["prev_vf_out"], indexs)
             if losses["approx_kl"] > 1.5 * self.target_kl:
                 logger.info(
                     f"Eargly breaking at step{i} due to reaching max kl.")
@@ -60,7 +61,7 @@ class PPOPolicy(PolicyBase):
 
     def _inner_update_loop(self, obses: np.array, actions: np.array,
                            advs: np.array, rets: np.array, logp_t: np.array,
-                           indexs: np.array) -> dict:
+                           prev_fn_out: np.array, indexs: np.array) -> dict:
         """Make update with random sampled minibatches and return mean kl-divvergence for early breaking
 
         Args:
@@ -82,7 +83,7 @@ class PPOPolicy(PolicyBase):
             slices = indexs[start:end]
             losses = self._train_one_step(obses[slices], actions[slices],
                                           advs[slices], logp_t[slices],
-                                          rets[slices])
+                                          rets[slices], prev_fn_out[slices])
             means.append([
                 losses['policy_loss'], losses['value_loss'],
                 losses['entropy_loss'], losses['approx_ent'],
@@ -99,9 +100,9 @@ class PPOPolicy(PolicyBase):
             "approx_kl": means[4]
         }
 
-    def _train_one_step(self, obs, act, adv, logp_old, rets):
+    def _train_one_step(self, obs, act, adv, logp_old, rets, prev_vf_out):
         with tf.GradientTape() as tape:
-            _losses = self._loss(obs, logp_old, act, adv, rets)
+            _losses = self._loss(obs, logp_old, act, adv, rets, prev_vf_out)
 
         trainable_variables = self.model.trainable_variables()
 
@@ -112,19 +113,22 @@ class PPOPolicy(PolicyBase):
         self.optimizer.apply_gradients(zip(grads, trainable_variables))
         return _losses
 
-    def _loss(self, obs, logp_old, act, adv, rets):
+    def _loss(self, obs, logp_old, act, adv, rets, prev_vf_out):
         # Depending on the policy(categorical or gaussian)
         # output from the network are logits or mu
         logits, values = self.model({"obs": obs})
 
         logp = self.model.logp(logits, act)
         ratio = tf.exp(logp - logp_old)
-        min_adv = tf.where(adv > 0, (1 + self.clip_ratio) * adv,
-                           (1 - self.clip_ratio) * adv)
+        # min_adv = tf.where(adv > 0, (1 + self.clip_ratio) * adv,
+        #                    (1 - self.clip_ratio) * adv)
+        pg_loss1 = - adv * ratio
+        pg_loss2 = - adv * tf.clip_by_value(ratio, 1.0 - self.clip_ratio, 1.0 + self.clip_ratio)
 
         # Policy Loss = loss_clipped + loss_entropy * entropy_coeff
         # For maxmizing via backprop losses must have negative sign
-        clipped_loss = -tf.reduce_mean(tf.math.minimum(ratio * adv, min_adv))
+        # clipped_loss = -tf.reduce_mean(tf.math.minimum(ratio * adv, min_adv))
+        clipped_loss = tf.reduce_mean(tf.math.maximum(pg_loss1, pg_loss2))
 
         entropy = self.model.entropy(logits)
         entropy_loss = -tf.reduce_mean(entropy)
@@ -134,7 +138,13 @@ class PPOPolicy(PolicyBase):
         approx_kl = tf.reduce_mean(logp_old - logp)
         approx_ent = tf.reduce_mean(-logp)
 
-        value_loss = 0.5 * tf.reduce_mean(tf.square(rets - values))
+        # value_loss = tf.reduce_mean(tf.square(rets - values))
+        vpred = values
+        vpred_clipped = prev_vf_out + tf.clip_by_value(
+            vpred - prev_vf_out, -self.clip_ratio, self.clip_ratio)
+        vf_loss1 = tf.math.square(vpred - rets)
+        vf_loss2 = tf.math.square(vpred_clipped - rets)
+        value_loss = tf.reduce_mean(tf.maximum(vf_loss1, vf_loss2))
 
         total_loss = policy_loss + value_loss * self.v_coef
 
