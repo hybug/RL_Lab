@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:32:24
-LastEditTime: 2022-07-19 17:40:06
+LastEditTime: 2022-08-03 11:37:53
 LastEditors: hanyu
 Description: basic config
 FilePath: /RL_Lab/configs/config_base.py
@@ -49,7 +49,9 @@ class ParamsBase:
 class EnvParams:
     # Basic Params
     num_envs: int = 1
+    env_name: str = ""
     experiment_name: str = ""
+    reward: str = ""
     seed: int = 0
     frame_stacking: bool = False
     frames_stack_size: int = 3

@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:21:01
-LastEditTime: 2022-07-29 18:26:32
+LastEditTime: 2022-08-03 15:20:35
 LastEditors: hanyu
 Description: batched env
 FilePath: /RL_Lab/envs/batched_env.py
@@ -13,6 +13,7 @@ from queue import Empty
 from typing import Any
 
 import cloudpickle
+from loguru import logger
 
 
 class BatchedEnvBase(ABC):
@@ -104,6 +105,12 @@ class BatchedEnv(BatchedEnvBase):
                             # Reinitialize the episode reward and length after done
                             episode_reward = 0
                             episode_length = 0
+
+                            # env_core = env._env.env.env.env.env.env.env._env
+                            # logger.info(
+                            #     f"Episode reward: {env_core._cumulative_reward}, score: {env_core._observation['score']}, steps: {env_core._step_count}"
+                            # )
+
                             obs = env.reset()
                             # for _ in range(2):
                             #     obs, _, _, _ = env.step(5)

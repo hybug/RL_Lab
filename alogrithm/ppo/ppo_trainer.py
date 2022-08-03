@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 17:45:25
-LastEditTime: 2022-07-29 16:44:30
+LastEditTime: 2022-08-02 16:03:50
 LastEditors: hanyu
 Description: ppo trainer
 FilePath: /RL_Lab/alogrithm/ppo/ppo_trainer.py
@@ -92,6 +92,8 @@ class PPOTrainer(TrainerBase):
             self.logger.store(name="Approx KL", value=losses["approx_kl"])
             self.logger.store(name="Approx Entropy",
                               value=losses["approx_ent"])
+            self.logger.store(name="Clip Frac", value=losses["clipfrac"])
+            self.logger.store(name="Explained Variance", value=losses["explained_variance"])
             # Logging episode information
             for episode_rew, episode_len in zip(
                     episode_infos["episode_rewards"],

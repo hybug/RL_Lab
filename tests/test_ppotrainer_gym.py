@@ -1,10 +1,10 @@
 '''
 Author: hanyu
 Date: 2022-07-20 14:58:57
-LastEditTime: 2022-08-03 19:34:55
+LastEditTime: 2022-08-03 16:20:19
 LastEditors: hanyu
 Description: test ppo trainer
-FilePath: /RL_Lab/tests/test_ppotrainer.py
+FilePath: /RL_Lab/tests/test_ppotrainer_gym.py
 '''
 from alogrithm.ppo.ppo_trainer import PPOTrainer
 from get_logger import BASEDIR
@@ -27,11 +27,11 @@ def set_global_seeds(i):
 
 
 def main():
-    set_global_seeds(0)
+    # set_global_seeds(0)
     ppo_trainer = PPOTrainer(
-        params_config_path="/config/test_football/test_11_vs_11_easy_stochastic.yaml",
+        params_config_path="/config/test_gym/test_CartPole-v1.yaml",
         working_dir=BASEDIR,
-        experiment_name="test_11_vs_11_easy_stochastic")
+        experiment_name="test_CartPole-v1")
     ppo_trainer.train()
     print()
 

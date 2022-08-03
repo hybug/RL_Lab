@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:46:16
-LastEditTime: 2022-07-26 14:21:43
+LastEditTime: 2022-08-03 17:20:05
 LastEditors: hanyu
 Description: ppo config
 FilePath: /RL_Lab/alogrithm/ppo/ppo_config.py
@@ -16,6 +16,7 @@ class PPOEnvParams:
     # Football Params
     n_player: int = field(repr=False)
     env_name: str = field(repr=False)
+    reward: str = field(repr=False)
     is_obs_continuous: bool = field(repr=False)
     is_act_continuous: bool = field(repr=False)
     obs_type: int = field(repr=False)
@@ -61,6 +62,7 @@ class PPOPolicyParams:
     target_kl: float = 0.01
     ent_coef: float = 0.1
     v_coef: float = 0.5
+    kl_coef: float = 0.2
     clip_grads: float = 0.5
 
     # Network Hyperparameters

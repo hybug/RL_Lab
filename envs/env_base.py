@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:30:23
-LastEditTime: 2022-07-29 16:50:28
+LastEditTime: 2022-08-03 11:41:18
 LastEditors: hanyu
 Description: env base
 FilePath: /RL_Lab/envs/env_base.py
@@ -19,14 +19,17 @@ def _init_env(env_params: EnvParams, seed: int, worker_id: int):
         env_type = 'football'
         env = football_env.create_environment(env_name=env_params.env_name,
                                               stacked=True,
-                                              rewards="scoring,checkpoints",
+                                              rewards=env_params.reward,
                                               write_goal_dumps=False,
                                               write_full_episode_dumps=False,
                                               render=False,
                                               dump_frequency=0)
 
     elif "gym" in env_params.env_name:
-        pass
+        import gym
+        env_params.env_name = env_params.env_name.split(' ')[-1]
+        env_type = 'gym'
+        env = gym.make(env_params.env_name)
     else:
         env = None
         env_type = None

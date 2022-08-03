@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-LastEditTime: 2022-07-28 18:04:04
+LastEditTime: 2022-08-03 19:37:22
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
@@ -39,7 +39,7 @@ class RolloutWorker:
             self._first_reset = True
 
         obses, rews, dones = list(), list(), list()
-        actions, values, logp = list(), list(), list()
+        actions, values, logp, logits = list(), list(), list(), list()
         ep_rews, ep_lens = list(), list()
 
         for step in range(self.steps_per_epoch):
@@ -49,14 +49,16 @@ class RolloutWorker:
                 obs = self.fe.encode(self._obs)
                 obs = self.fe.concate_observation_from_raw(obs)
             else:
-                obs = np.array(self._obs) / 255
-            actions_t, logp_t, values_t = self.model.get_action_logp_value(
+                # obs = np.array(self._obs) / 255
+                obs = np.array(self._obs)
+            actions_t, logp_t, values_t, logits_t = self.model.get_action_logp_value(
                 {"obs": obs})
 
-            obses.append(obs)
+            obses.append(obs.copy())
             dones.append(self._dones)
             actions.append(actions_t)
             values.append(values_t)
+            logits.append(logits_t)
             logp.append(logp_t)
 
             # Envs stepping actions
@@ -64,7 +66,7 @@ class RolloutWorker:
                 actions_t)
 
             for info in infos:
-                if info is not None and "score_reward" not in info.keys():
+                if info and "score_reward" not in info.keys():
                     ep_rews.append(info['episode_reward'])
                     ep_lens.append(info['episode_length'])
             # Save obs(t), dones(t), actions(t), logp(t), values(t), rews(t+1) in one stepping
@@ -78,15 +80,19 @@ class RolloutWorker:
         if self.fe:
             obs = self.fe.encode(self._obs)
             obs = self.fe.concate_observation_from_raw(obs)
-        actions_t, logp_t, values_t = self.model.get_action_logp_value(
+        else:
+            obs = np.array(self._obs)
+        #         obs = np.array(self._obs) / 255
+        _, _, values_t, _ = self.model.get_action_logp_value(
             {"obs": obs})
         last_values = values_t
 
         obses = np.array(obses, dtype=np.float32)
         rews = np.array(rews, dtype=np.float32)
-        dones = np.array(rews, dtype=np.bool)
+        dones = np.array(dones, dtype=np.bool)
         actions = np.array(actions, dtype=np.float32)
         values = np.array(values, dtype=np.float32)
+        logits = np.array(logits, dtype=np.float32)
         logp = np.array(logp, dtype=np.float32)
 
         # Discount / Bootstraping Values
@@ -119,7 +125,7 @@ class RolloutWorker:
         advs = (advs - advs.mean()) / (advs.std() + 1e-8)
 
         return self._flatten_rollout(obses, rews, dones, actions, logp, values,
-                                     advs, rets, values), {
+                                     advs, rets, logits), {
                                          "episode_rewards": ep_rews,
                                          "episode_lengths": ep_lens
                                      }
@@ -127,8 +133,9 @@ class RolloutWorker:
     def _flatten_rollout(self, obses: np.array, rews: np.array,
                          dones: np.array, actions: np.array, logp: np.array,
                          values: np.array, advs: np.array,
-                         rets: np.array, prev_vf_out: np.array) -> dict:
+                         rets: np.array, logits: np.array) -> dict:
         obses = obses.reshape((-1, ) + obses.shape[-3:])
+        logits = logits.reshape((-1, ) + logits.shape[-1:])
         return {
             "obses": obses,
             "rews": rews.flatten(),
@@ -138,5 +145,5 @@ class RolloutWorker:
             "values": values.flatten(),
             "advs": advs.flatten(),
             "returns": rets.flatten(),
-            "prev_vf_out": prev_vf_out.flatten()
+            "logits": logits
         }

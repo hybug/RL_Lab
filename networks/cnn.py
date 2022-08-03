@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:06:08
-LastEditTime: 2022-07-29 10:06:02
+LastEditTime: 2022-08-02 15:03:18
 LastEditors: hanyu
 Description: cnn
 FilePath: /RL_Lab/networks/cnn.py
@@ -37,6 +37,8 @@ def impala_cnn(inputs, params: PolicyParams, name="impala_cnn"):
     # inputs = tf.keras.layers.Input(shape=(None, ) + tuple(params.input_shape),
     #                                name=f"{name}_obs")
     conv_out = inputs
+    conv_out = tf.cast(conv_out, tf.float32)
+    conv_out /= 255
     for i, (filter, kernel, stride,
             num_blocks) in enumerate(params.resnet_filters):
         # Downscale
@@ -46,7 +48,7 @@ def impala_cnn(inputs, params: PolicyParams, name="impala_cnn"):
             strides=stride,
             padding='same',
             activation=None,
-            kernel_initializer=params.kernel_initializer,
+            kernel_initializer=None,
             name=f"{name}_conv_{i}")(conv_out)
         conv_out = tf.keras.layers.MaxPool2D(pool_size=(3, 3),
                                              padding='same',
@@ -63,7 +65,7 @@ def impala_cnn(inputs, params: PolicyParams, name="impala_cnn"):
                 strides=stride,
                 padding='same',
                 activation=None,
-                kernel_initializer=params.kernel_initializer,
+                kernel_initializer=None,
                 name=f"{name}_residual_conv_{i}_{j}_1")(conv_out)
             conv_out = tf.keras.layers.Activation(
                 "relu", name=f"{name}_relu_{i}_{j}_2")(conv_out)
@@ -73,16 +75,17 @@ def impala_cnn(inputs, params: PolicyParams, name="impala_cnn"):
                 strides=stride,
                 padding='same',
                 activation=None,
-                kernel_initializer=params.kernel_initializer,
+                kernel_initializer=None,
                 name=f"{name}_residual_conv_{i}_{j}_2")(conv_out)
             conv_out = tf.keras.layers.Add(name=f"{name}_add_{i}_{j}")(
                 [conv_out, block_input])
 
+    # conv_out = tf.keras.layers.Activation("relu",
+    #                                       name=f"{name}_relu_3")(conv_out)
+    conv_out = tf.keras.layers.Flatten()(conv_out)
     conv_out = tf.keras.layers.Activation("relu",
                                           name=f"{name}_relu_3")(conv_out)
-    conv_out = tf.keras.layers.Flatten()(conv_out)
-
-    conv_out = tf.keras.layers.Dense(256)(conv_out)
-    conv_out = tf.keras.layers.Activation("relu",
-                                          name=f"{name}_relu_4")(conv_out)
+    conv_out = tf.keras.layers.Dense(units=256)(conv_out)
+    # conv_out = tf.keras.layers.Activation("relu",
+    #                                       name=f"{name}_relu_4")(conv_out)
     return conv_out

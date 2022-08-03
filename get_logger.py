@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:35:25
-LastEditTime: 2022-07-29 16:37:43
+LastEditTime: 2022-08-01 17:35:24
 LastEditors: hanyu
 Description: get logger
 FilePath: /RL_Lab/get_logger.py
@@ -49,7 +49,7 @@ class TFLogger():
         self.metrics = dict()
         self.summary_writer = tf.summary.create_file_writer(
             self.logger_params.log_dir +
-            f'/logs/_TensorFlow_Training/{datetime_str}/{self.logger_params.file_name}'
+            f'/logs/_TensorFlow_Training/{datetime_str.split("_")[0]}/{self.logger_params.file_name}'
         )
 
     def store(self, name=None, value=None):
@@ -62,17 +62,13 @@ class TFLogger():
         logger.info('MEAN METRICS START')
         logger.info(f'Epoch: {epoch}')
 
-        flag = False
         if not self.metrics:
             logger.info("No metrics")
         else:
-            if "Episode Reward" in self.metrics.keys(
-            ) and self.metrics["Episode Reward"] != 0:
-                flag = True
+
             for key, metric in self.metrics.items():
                 value = metric.result()
-                if flag:
-                    logger.info(f'{key}: {value}')
+                logger.info(f'{key}: {value}')
 
                 if key not in ["Episode Reward", "Episode Length"
                                ] or value != 0:
