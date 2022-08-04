@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 17:45:25
-LastEditTime: 2022-08-03 20:15:54
+LastEditTime: 2022-08-04 16:32:26
 LastEditors: hanyu
 Description: ppo trainer
 FilePath: /RL_Lab/alogrithm/ppo/ppo_trainer.py
@@ -14,7 +14,7 @@ from envs.env_utils import create_batched_env
 from get_logger import BASEDIR, TFLogger
 from models.categorical_model import CategoricalModel
 from networks.network_utils import nn_builder
-from preprocess.feature_encoder.fe_gfootball import FeatureEncoderGFootball
+from preprocess.feature_encoder.fe_no import NoFeatureEncoder
 from trainers.trainer_base import TrainerBase
 from workers.rollout_worker import RolloutWorker
 
@@ -57,17 +57,14 @@ class PPOTrainer(TrainerBase):
             raise NotImplementedError("Error >> Restore model not implemented")
 
         # Initialize feature encoder
-        if "football" in self.params.env.env_name:
-            self.fe = FeatureEncoderGFootball()
-        else:
-            self.fe = None
+        self.fe = NoFeatureEncoder()
 
         # Initialize rollout worker
         self.rollout_worker = RolloutWorker(
             params=self.params,
             batched_env=self.env,
             model=self.model,
-            # feture_encoder=self.fe,
+            feature_encoder=self.fe,
             steps_per_epoch=self.params.trainer.steps_per_epoch,
             gamma=self.params.trainer.gamma,
             lam=self.params.trainer.lam)

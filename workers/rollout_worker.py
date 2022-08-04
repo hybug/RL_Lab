@@ -1,17 +1,20 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-LastEditTime: 2022-08-03 20:19:41
+LastEditTime: 2022-08-04 16:31:41
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
 '''
-from typing import Tuple
+from typing import Callable, Tuple
 
 import numpy as np
 import tensorflow as tf
 from configs.config_base import Params
 from envs.batched_env import BatchedEnv
+from policy.sample_batch import SampleBatch
+from policy.sample_batch_builder import SampleBatchBuilder
+from preprocess.feature_encoder.fe_no import FeatureEncoder
 
 
 class RolloutWorker:
@@ -20,44 +23,39 @@ class RolloutWorker:
                  batched_env: BatchedEnv,
                  model: tf.keras.Model,
                  steps_per_epoch: int,
-                 feture_encoder=None,
+                 feature_encoder: FeatureEncoder,
                  gamma: float = 0.99,
                  lam: float = 0.97) -> None:
         self.batched_env = batched_env
         self.params = params
         self.model = model
-        self.fe = feture_encoder
+        self.fe = feature_encoder
         self.steps_per_epoch = steps_per_epoch
         self.gamma = gamma
         self.lam = lam
 
-        self._obs = None
-        self._rews = None
-        self._dones = None
+        self._obs_dict = None
+        self._rews_dict = None
+        self._dones_dict = None
         self._first_reset = False
 
     def rollout(self) -> Tuple[dict, dict]:
         if not self._first_reset:
-            self._obs, self._rews, self._dones, _ = self.batched_env.reset()
+            self._obs_dict, self._rews_dict, self._dones_dict, _ = self.batched_env.reset()
             self._first_reset = True
 
-        obses, rews, dones = list(), list(), list()
-        actions, values, logp, logits = list(), list(), list(), list()
+        sample_batch_builder = SampleBatchBuilder()
         ep_rews, ep_lens = list(), list()
 
         for step in range(self.steps_per_epoch):
 
-            # Model infer actions TODO
-            if self.fe:
-                obs = self.fe.encode(self._obs)
-                obs = self.fe.concate_observation_from_raw(obs)
-            else:
-                # obs = np.array(self._obs) / 255
-                obs = np.array(self._obs)
+            # Model infer actions
             actions_t, logp_t, values_t, logits_t = self.model.get_action_logp_value(
-                {"obs": obs})
+                {"obs": self.fe.transform(self._obs)})
 
-            obses.append(obs.copy())
+            sample_batch_builder.add_values()
+
+            obses.append(self.fe.transform(self._obs))
             dones.append(self._dones)
             actions.append(actions_t)
             values.append(values_t)

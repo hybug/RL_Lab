@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:21:01
-LastEditTime: 2022-08-03 15:20:35
+LastEditTime: 2022-08-04 16:31:01
 LastEditors: hanyu
 Description: batched env
 FilePath: /RL_Lab/envs/batched_env.py
@@ -13,7 +13,6 @@ from queue import Empty
 from typing import Any
 
 import cloudpickle
-from loguru import logger
 
 
 class BatchedEnvBase(ABC):
@@ -71,7 +70,6 @@ class BatchedEnv(BatchedEnvBase):
         try:
             # Load lambda create_single_env function and execute it
             env = cloudpickle.loads(env_pickled_str)()
-            # res_queue.put((env.env_info, None))
 
             # Initialize the episode reward and length
             episode_reward = 0
@@ -86,9 +84,8 @@ class BatchedEnv(BatchedEnvBase):
                         episode_reward = 0
                         episode_length = 0
                         obs = env.reset()
-                        # for _ in range(2):
-                        #     obs, _, _, _ = env.step(5)
-                        res_queue.put(((obs, 0, False, None), None))
+                        res_queue.put(
+                            ((obs, 0, False, None, worker_idx), None))
 
                     elif cmd == 'step':
                         obs, rew, done, info = env.step(arg)
@@ -106,16 +103,10 @@ class BatchedEnv(BatchedEnvBase):
                             episode_reward = 0
                             episode_length = 0
 
-                            # env_core = env._env.env.env.env.env.env.env._env
-                            # logger.info(
-                            #     f"Episode reward: {env_core._cumulative_reward}, score: {env_core._observation['score']}, steps: {env_core._step_count}"
-                            # )
-
                             obs = env.reset()
-                            # for _ in range(2):
-                            #     obs, _, _, _ = env.step(5)
 
-                        res_queue.put(((obs, rew, done, info), None))
+                        res_queue.put(
+                            ((obs, rew, done, info, worker_idx), None))
 
                     elif cmd == 'close':
                         return
@@ -139,42 +130,43 @@ class BatchedEnv(BatchedEnvBase):
         return len(self._process)
 
     def reset(self):
-        obses = list()
-        rewards = list()
-        dones = list()
+        obses_dict = {w_i: list() for w_i in range(len(self._env_fns))}
+        rewards_dict = {w_i: list() for w_i in range(len(self._env_fns))}
+        dones_dict = {w_i: list() for w_i in range(len(self._env_fns))}
+        infos_dict = {w_i: list() for w_i in range(len(self._env_fns))}
 
         for q in self._command_queues:
             q.put(('reset', None))
 
         for q in self._result_queues:
-            obs, reward, done, info = self._queue_get(q)
+            obs, reward, done, info, worker_idx = self._queue_get(q)
 
-            obses.append(obs)
-            rewards.append(reward)
-            dones.append(done)
+            obses_dict[worker_idx].append(obs)
+            rewards_dict[worker_idx].append(reward)
+            dones_dict[worker_idx].append(done)
 
-        return obses, rewards, dones, {}
+        return obses_dict, rewards_dict, dones_dict, infos_dict
 
     def step(self, actions: list):
-        obses = list()
-        rewards = list()
-        dones = list()
-        infos = list()
+        obses_dict = {w_i: list() for w_i in range(len(self._env_fns))}
+        rewards_dict = {w_i: list() for w_i in range(len(self._env_fns))}
+        dones_dict = {w_i: list() for w_i in range(len(self._env_fns))}
+        infos_dict = {w_i: list() for w_i in range(len(self._env_fns))}
 
         for q, action in zip(self._command_queues, actions):
             q.put(('step', action))
 
         for q in self._result_queues.copy():
             try:
-                obs, reward, done, info = self._queue_get(q)
+                obs, reward, done, info, worker_idx = self._queue_get(q)
             except Empty:
                 pass
-            obses.append(obs)
-            rewards.append(reward)
-            dones.append(done)
-            infos.append(info)
+            obses_dict[worker_idx].append(obs)
+            rewards_dict[worker_idx].append(reward)
+            dones_dict[worker_idx].append(done)
+            infos_dict[worker_idx].append(info)
 
-        return obses, rewards, dones, infos
+        return obses_dict, rewards_dict, dones_dict, infos_dict
 
     def close(self):
         for q in self._command_queues:

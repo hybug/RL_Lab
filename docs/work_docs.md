@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2021-06-15 10:34:08
- * @LastEditTime: 2022-07-25 11:41:33
+ * @LastEditTime: 2022-08-04 11:58:16
  * @LastEditors: hanyu
  * @Description: work docs
  * @FilePath: /RL_Lab/docs/work_docs.md
@@ -100,3 +100,12 @@
 Copy https://github.com/jw1401/PPO-Tensorflow-2.0
 #### 2. Todo
 Reproducing https://towardsdatascience.com/reproducing-google-research-football-rl-results-ac75cf17190e
+
+### 2022-08-04
+#### 1. Done
+- [x] Reproduced Gym-CartPole-v1
+- [x] Fix the wrong gae calculation
+#### 2. Todo
+- [ ] Reproducing https://towardsdatascience.com/reproducing-google-research-football-rl-results-ac75cf17190e
+- [ ] Restructure the RolloutWorker.rollout()[Using Rllib SampleBatch & SampleBatchBuilder for better visualization in debug]
+- [ ] There seems to be a problem in explaining variance calculation. The convergence in gfootball is not as good as that in benchwork
