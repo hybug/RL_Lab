@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2022-07-26 18:09:27
- * @LastEditTime: 2022-07-26 18:21:02
+ * @LastEditTime: 2022-08-03 21:09:47
  * @LastEditors: hanyu
  * @Description: read me
  * @FilePath: /RL_Lab/README.md
@@ -10,6 +10,8 @@
 - [Algorithms](#algorithms)
   - [Proximal Policy Optimization (PPO)](#proximal-policy-optimization-ppo)
 - [Game Environment](#game-environment)
+  - [Gym CartPole-v1](#gym-cartpole-v1)
+  - [Experiment Result](#experiment-result)
   - [Google Football](#google-football)
 
 # 1. RL-Lab
@@ -20,13 +22,19 @@ At present, the following algorithms and game environments have been implemented
 | ---------------------------------------- | --------- | ---------------- | ----------------- |
 | [PPO](#proximal-policy-optimization-ppo) | tf        | Yes              | Yes               |
 
-| GameEnv                       | Demo ALgorithms |
-| ----------------------------- | --------------- |
-| [Gfootball](#google-football) | PPO             |
+| GameEnv                              | Demo ALgorithms |
+| ------------------------------------ | --------------- |
+| [Gym CartPole-vv1](#gym-cartpole-v1) | PPO             |
+| [Gfootball](#google-football)        | PPO             |
+
 
 # Algorithms
 ## Proximal Policy Optimization (PPO)
 
 # Game Environment
+## Gym CartPole-v1
+[CardPole-v1 Reference](https://github.com/openai/gym/blob/master/gym/envs/classic_control/cartpole.py)
+## Experiment Result
+
 ## Google Football
 

@@ -1,7 +1,7 @@
 env_params:
   n_player: 2
-  # env_name: "football-1_vs_1_easy"
   env_name: "football-11_vs_11_easy_stochastic"
+  reward: "scoring,checkpoints"
   num_envs: 16
   is_obs_continuous: false
   is_act_continuous: false
@@ -29,10 +29,10 @@ policy_params:
     - [16, 3, 1, 2]
     - [32, 3, 1, 2]
     - [32, 3, 1, 2]
-    - [32, 3, 1, 2]
+    # - [32, 3, 1, 2]
   activation: 
   output_activation: 
-  kernel_initializer: "glorot_uniform"
+  kernel_initializer: 
   input_shape: [72, 96, 16]
   act_size: 19
 

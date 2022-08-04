@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:53:16
-LastEditTime: 2022-08-03 19:46:19
+LastEditTime: 2022-08-03 20:33:09
 LastEditors: hanyu
 Description: ppo policy
 FilePath: /RL_Lab/alogrithm/ppo/ppo_policy.py
@@ -152,8 +152,8 @@ class PPOPolicy(PolicyBase):
         vf_loss2 = tf.math.square(vpred_clipped - rets)
         value_loss = tf.reduce_mean(tf.maximum(vf_loss1, vf_loss2))
 
-        # total_loss = policy_loss + self.kl_coef * kl_loss + value_loss * self.v_coef - entropy_loss * self.ent_coef
-        total_loss = policy_loss + value_loss * self.v_coef - entropy_loss * self.ent_coef
+        total_loss = policy_loss + self.kl_coef * kl_loss + value_loss * self.v_coef - entropy_loss * self.ent_coef
+        # total_loss = policy_loss + value_loss * self.v_coef - entropy_loss * self.ent_coef
 
         return {
             "policy_loss": policy_loss,

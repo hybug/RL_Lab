@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-20 14:58:57
-LastEditTime: 2022-08-03 16:20:19
+LastEditTime: 2022-08-03 20:33:19
 LastEditors: hanyu
 Description: test ppo trainer
 FilePath: /RL_Lab/tests/test_ppotrainer_gym.py
@@ -31,7 +31,7 @@ def main():
     ppo_trainer = PPOTrainer(
         params_config_path="/config/test_gym/test_CartPole-v1.yaml",
         working_dir=BASEDIR,
-        experiment_name="test_CartPole-v1")
+        experiment_name="test_CartPole-v1_withklloss")
     ppo_trainer.train()
     print()
 

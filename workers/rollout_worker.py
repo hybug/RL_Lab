@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-LastEditTime: 2022-08-03 19:37:22
+LastEditTime: 2022-08-03 20:19:41
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
@@ -10,11 +10,13 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
+from configs.config_base import Params
 from envs.batched_env import BatchedEnv
 
 
 class RolloutWorker:
     def __init__(self,
+                 params: Params,
                  batched_env: BatchedEnv,
                  model: tf.keras.Model,
                  steps_per_epoch: int,
@@ -22,6 +24,7 @@ class RolloutWorker:
                  gamma: float = 0.99,
                  lam: float = 0.97) -> None:
         self.batched_env = batched_env
+        self.params = params
         self.model = model
         self.fe = feture_encoder
         self.steps_per_epoch = steps_per_epoch
@@ -134,7 +137,7 @@ class RolloutWorker:
                          dones: np.array, actions: np.array, logp: np.array,
                          values: np.array, advs: np.array,
                          rets: np.array, logits: np.array) -> dict:
-        obses = obses.reshape((-1, ) + obses.shape[-3:])
+        obses = obses.reshape((-1, ) + obses.shape[-len(self.params.policy.input_shape):])
         logits = logits.reshape((-1, ) + logits.shape[-1:])
         return {
             "obses": obses,

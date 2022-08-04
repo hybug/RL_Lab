@@ -1,0 +1,51 @@
+env_params:
+  n_player: 2
+  # env_name: "football-1_vs_1_easy"
+  env_name: "football-academy_empty_goal_close"
+  reward: "scoring"
+  num_envs: 2
+  is_obs_continuous: false
+  is_act_continuous: false
+  obs_type: 
+    - "dict"
+    - "dict"
+  max_step: 3000
+  agent_nums: 
+    - 1
+    - 0
+  act_box: 
+    discrete_n: 19
+policy_params:
+  lr: 0.000343
+  train_iters: 2
+  clip_ratio: 0.08
+  target_kl: 0.01
+  ent_coef: 0.03
+  v_coef: 0.5
+  clip_grads: 0.64
+
+
+  pool_size: [1, 1]
+  resnet_filters: 
+    - [16, 3, 1, 2]
+    - [32, 3, 1, 2]
+    - [32, 3, 1, 2]
+    - [32, 3, 1, 2]
+  activation: 
+  output_activation: 
+  kernel_initializer: "glorot_uniform"
+  input_shape: [72, 96, 16]
+  act_size: 19
+
+train_params:
+  trainer: "Proximal Policy Optimization"
+  nn_architecure: "impala_cnn_actor_critic"
+
+  epochs: 100000
+  steps_per_epoch: 512
+  num_mini_batches: 8
+  gamma: 0.993
+  lam: 0.95
+  save_freq: 5
+
+  restore_path:

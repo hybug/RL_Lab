@@ -1,8 +1,8 @@
 env_params:
   n_player: 2
   # env_name: "football-1_vs_1_easy"
-  env_name: "football-academy_pass_and_shoot_with_keeper"
-  num_envs: 2
+  env_name: "football-academy_run_to_score"
+  num_envs: 16
   is_obs_continuous: false
   is_act_continuous: false
   obs_type: 
@@ -33,7 +33,7 @@ policy_params:
   activation: 
   output_activation: 
   kernel_initializer: "glorot_uniform"
-  input_shape: [72, 96, 4]
+  input_shape: [72, 96, 16]
   act_size: 19
 
 train_params:
@@ -45,6 +45,6 @@ train_params:
   num_mini_batches: 8
   gamma: 0.993
   lam: 0.95
-  save_freq: 5
+  save_freq: 10
 
   restore_path:

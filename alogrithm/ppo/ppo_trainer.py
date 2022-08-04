@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 17:45:25
-LastEditTime: 2022-08-02 16:03:50
+LastEditTime: 2022-08-03 20:15:54
 LastEditors: hanyu
 Description: ppo trainer
 FilePath: /RL_Lab/alogrithm/ppo/ppo_trainer.py
@@ -64,6 +64,7 @@ class PPOTrainer(TrainerBase):
 
         # Initialize rollout worker
         self.rollout_worker = RolloutWorker(
+            params=self.params,
             batched_env=self.env,
             model=self.model,
             # feture_encoder=self.fe,
