@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 17:45:25
-LastEditTime: 2022-08-05 10:41:16
+LastEditTime: 2022-08-05 11:40:38
 LastEditors: hanyu
 Description: ppo trainer
 FilePath: /RL_Lab/alogrithm/ppo/ppo_trainer.py
@@ -73,6 +73,7 @@ class PPOTrainer(TrainerBase):
         # Initialize the PPO policy
         self.ppo_policy = PPOPolicy(model=self.model,
                                     params=self.params,
+                                    logger=self.logger,
                                     num_envs=self.params.env.num_envs)
 
     def train(self):
@@ -82,17 +83,17 @@ class PPOTrainer(TrainerBase):
             rollout_sample_batches = self.rollout_worker.rollout()
 
             # Update the ppo policy
-            losses = self.ppo_policy.update(rollout_sample_batches)
+            _ = self.ppo_policy.update(rollout_sample_batches)
 
-            # Logging training information
-            self.logger.store(name="Loss Policy", value=losses["policy_loss"])
-            self.logger.store(name="Loss Value", value=losses["value_loss"])
-            self.logger.store(name="Loss Entropy", value=losses["entropy_loss"])
-            self.logger.store(name="Approx KL", value=losses["approx_kl"])
-            self.logger.store(name="Approx Entropy",
-                              value=losses["approx_ent"])
-            self.logger.store(name="Clip Frac", value=losses["clipfrac"])
-            self.logger.store(name="Explained Variance", value=losses["explained_variance"])
+            # # Logging training information
+            # self.logger.store(name="Loss Policy", value=losses["policy_loss"])
+            # self.logger.store(name="Loss Value", value=losses["value_loss"])
+            # self.logger.store(name="Loss Entropy", value=losses["entropy_loss"])
+            # self.logger.store(name="Approx KL", value=losses["approx_kl"])
+            # self.logger.store(name="Approx Entropy",
+            #                   value=losses["approx_ent"])
+            # self.logger.store(name="Clip Frac", value=losses["clipfrac"])
+            # self.logger.store(name="Explained Variance", value=losses["explained_variance"])
             # Logging episode information
             for info in rollout_sample_batches[SampleBatch.INFOS]:
                 if "episode_reward" in info.keys():

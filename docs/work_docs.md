@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2021-06-15 10:34:08
- * @LastEditTime: 2022-08-04 11:58:16
+ * @LastEditTime: 2022-08-05 11:46:59
  * @LastEditors: hanyu
  * @Description: work docs
  * @FilePath: /RL_Lab/docs/work_docs.md
@@ -109,3 +109,12 @@ Reproducing https://towardsdatascience.com/reproducing-google-research-football-
 - [ ] Reproducing https://towardsdatascience.com/reproducing-google-research-football-rl-results-ac75cf17190e
 - [ ] Restructure the RolloutWorker.rollout()[Using Rllib SampleBatch & SampleBatchBuilder for better visualization in debug]
 - [ ] There seems to be a problem in explaining variance calculation. The convergence in gfootball is not as good as that in benchwork
+- [ ] Optimize the logger output representation
+
+### 2022-08-05
+#### 1. Done
+- [x] Restructure the RolloutWorker.rollout()[Using Rllib SampleBatch & SampleBatchBuilder for better visualization in debug]
+- [x] Optimize the logger output representation
+#### 2. Todo
+- [ ] Reproducing https://towardsdatascience.com/reproducing-google-research-football-rl-results-ac75cf17190e
+- [ ] Check the ExplianceVariance calculation

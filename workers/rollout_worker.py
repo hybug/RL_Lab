@@ -1,12 +1,12 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-LastEditTime: 2022-08-05 10:39:04
+LastEditTime: 2022-08-05 11:00:05
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
 '''
-from typing import Callable, Tuple
+from typing import Tuple
 
 import numpy as np
 from configs.config_base import Params

@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:50:23
-LastEditTime: 2022-08-03 17:16:07
+LastEditTime: 2022-08-05 11:10:35
 LastEditors: hanyu
 Description: policy base
 FilePath: /RL_Lab/policy/policy_base.py
@@ -22,3 +22,4 @@ class PolicyBase():
         self.ent_coef = self.params.policy.ent_coef
         self.v_coef = self.params.policy.v_coef
         self.kl_coef = self.params.policy.kl_coef
+        self.kl_target = self.params.policy.target_kl

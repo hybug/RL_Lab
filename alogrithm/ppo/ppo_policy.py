@@ -1,15 +1,15 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:53:16
-LastEditTime: 2022-08-04 20:35:41
+LastEditTime: 2022-08-05 11:37:35
 LastEditors: hanyu
 Description: ppo policy
 FilePath: /RL_Lab/alogrithm/ppo/ppo_policy.py
 '''
-from typing import List
 import numpy as np
 import tensorflow as tf
 from configs.config_base import Params
+from get_logger import TFLogger
 from models.categorical_model import CategoricalModel
 from policy.policy_base import PolicyBase
 from policy.policy_utils import explained_variance
@@ -26,10 +26,12 @@ class PPOPolicy(PolicyBase):
     def __init__(self,
                  model: CategoricalModel,
                  params: Params,
+                 logger: TFLogger,
                  num_envs: int = 1) -> None:
         super().__init__(params)
 
         self.model = model
+        self.logger = logger
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.lr,
                                                   epsilon=1e-5)
 
@@ -53,9 +55,28 @@ class PPOPolicy(PolicyBase):
 
             losses = self._inner_update_loop(rollouts, indexs)
 
-        ev = explained_variance(rollouts[SampleBatch.VF_PREDS], rollouts[Postprocessing.VALUE_TARGETS])
-        losses["explained_variance"] = ev
+        self.update_kl(losses["mean_kl"])
+
+        ev = explained_variance(rollouts[SampleBatch.VF_PREDS],
+                                rollouts[Postprocessing.VALUE_TARGETS])
+        # losses["explained_variance"] = ev
+        self.logger.store("explained_variance", ev)
         return losses
+
+    def update_kl(self, sampled_kl):
+        """Update the current kl coeff baed one the recently measured value
+
+        Args:
+            sampled_kl (_type_): meaured value
+        """
+        if sampled_kl > 2.0 * self.kl_target:
+            self.kl_coef *= 1.5
+        elif sampled_kl < 0.5 * self.kl_target:
+            self.kl_coef *= 0.5
+        else:
+            return self.kl_coef
+
+        return self.kl_coef
 
     def _inner_update_loop(self, rollouts: SampleBatch,
                            indexs: np.array) -> dict:
@@ -73,30 +94,36 @@ class PPOPolicy(PolicyBase):
             dict: policy_loss, value_loss, entropy_loss, approx_ent, approx_kl
         """
         np.random.shuffle(indexs)
-        means = list()
+        # means = list()
 
         for start in range(0, self.nbatch, self.nbatch_train):
             end = start + self.nbatch_train
             # slices = indexs[start:end]
             losses = self._train_one_step(rollouts.slice(start, end))
-            means.append([
-                losses['policy_loss'], losses['value_loss'],
-                losses['entropy_loss'], losses['approx_ent'],
-                losses['approx_kl'], losses["clipfrac"]
-            ])
-        means = np.asarray(means)
-        means = np.mean(means, axis=0)
+            
+            # Store the stats logging info
+            for key, value in losses.items():
+                self.logger.store(name=key, value=value)
+
+        #     means.append([
+        #         losses['policy_loss'], losses['value_loss'],
+        #         losses['entropy_loss'], losses['approx_ent'],
+        #         losses['approx_kl'], losses["clipfrac"]
+        #     ])
+        # means = np.asarray(means)
+        # means = np.mean(means, axis=0)
         # ev = explained_variance(prev_fn_out, rets)
 
-        return {
-            "policy_loss": means[0],
-            "value_loss": means[1],
-            "entropy_loss": means[2],
-            "approx_ent": means[3],
-            "approx_kl": means[4],
-            "clipfrac": means[5]
-            # "explained_variance": ev
-        }
+        # return {
+        #     "policy_loss": means[0],
+        #     "value_loss": means[1],
+        #     "entropy_loss": means[2],
+        #     "approx_ent": means[3],
+        #     "approx_kl": means[4],
+        #     "clipfrac": means[5]
+        #     # "explained_variance": ev
+        # }
+        return losses
 
     def _train_one_step(self, mini_rollouts: SampleBatch):
         with tf.GradientTape() as tape:
@@ -131,8 +158,9 @@ class PPOPolicy(PolicyBase):
         entropy = self.model.entropy(logits)
         entropy_loss = tf.reduce_mean(entropy)
 
-        approx_kl = .5 * tf.reduce_mean(tf.square(mini_rollouts[SampleBatch.ACTION_LOGP] - logp))
-        approx_ent = tf.reduce_mean(-logp)
+        # approx_kl = .5 * tf.reduce_mean(
+        #     tf.square(mini_rollouts[SampleBatch.ACTION_LOGP] - logp))
+        # approx_ent = tf.reduce_mean(-logp)
         clipfrac = tf.reduce_mean(
             tf.cast(tf.greater(tf.abs(ratio - 1.0), self.clip_ratio),
                     tf.float32))
@@ -140,20 +168,33 @@ class PPOPolicy(PolicyBase):
         # value_loss = tf.reduce_mean(tf.square(rets - values))
         vpred = values
         vpred_clipped = mini_rollouts[SampleBatch.VF_PREDS] + tf.clip_by_value(
-            vpred - mini_rollouts[SampleBatch.VF_PREDS], -self.clip_ratio, self.clip_ratio)
-        vf_loss1 = tf.math.square(vpred - mini_rollouts[Postprocessing.VALUE_TARGETS])
-        vf_loss2 = tf.math.square(vpred_clipped - mini_rollouts[Postprocessing.VALUE_TARGETS])
+            vpred - mini_rollouts[SampleBatch.VF_PREDS], -self.clip_ratio,
+            self.clip_ratio)
+        vf_loss1 = tf.math.square(vpred -
+                                  mini_rollouts[Postprocessing.VALUE_TARGETS])
+        vf_loss2 = tf.math.square(vpred_clipped -
+                                  mini_rollouts[Postprocessing.VALUE_TARGETS])
         value_loss = tf.reduce_mean(tf.maximum(vf_loss1, vf_loss2))
 
         total_loss = policy_loss + self.kl_coef * kl_loss + value_loss * self.v_coef - entropy_loss * self.ent_coef
         # total_loss = policy_loss + value_loss * self.v_coef - entropy_loss * self.ent_coef
 
+        # return {
+        #     "policy_loss": policy_loss,
+        #     "entropy_loss": entropy_loss,
+        #     "value_loss": value_loss,
+        #     "total_loss": total_loss,
+        #     "approx_kl": approx_kl,
+        #     "approx_ent": approx_ent,
+        #     "clipfrac": clipfrac
+        # }
         return {
-            "policy_loss": policy_loss,
-            "entropy_loss": entropy_loss,
-            "value_loss": value_loss,
             "total_loss": total_loss,
-            "approx_kl": approx_kl,
-            "approx_ent": approx_ent,
-            "clipfrac": clipfrac
+            "mean_policy_loss": policy_loss,
+            "mean_vf_loss": value_loss,
+            "mean_entropy": entropy_loss,
+            "mean_kl": kl_loss,
+            # "value_fn_out": values,
+            "clip_frac": clipfrac,
+            "kl_coeff": self.kl_coef
         }
