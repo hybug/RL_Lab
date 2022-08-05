@@ -1,12 +1,13 @@
 '''
 Author: hanyu
 Date: 2022-08-04 11:02:18
-LastEditTime: 2022-08-04 11:25:44
+LastEditTime: 2022-08-04 20:27:51
 LastEditors: hanyu
 Description: sample batch
 FilePath: /RL_Lab/policy/sample_batch.py
 '''
 
+from typing import List
 import numpy as np
 
 
@@ -26,6 +27,7 @@ class SampleBatch(dict):
     INFOS = "infos"
 
     # Extra action fetches keys.
+    LOGITS = "logits"
     ACTION_DIST_INPUTS = "action_dist_inputs"
     ACTION_PROB = "action_prob"
     ACTION_LOGP = "action_logp"
@@ -59,3 +61,27 @@ class SampleBatch(dict):
                 self[k] = np.array(v)
 
         self.count = lengths[0] if lengths else 0
+
+    @staticmethod
+    def concat_samples(samples: List["SampleBatch"]) -> "SampleBatch":
+        """Concatenates SampleBatches
+
+        Args:
+            samples (List[&quot;SampleBatch&quot;]): List of SampleBatches
+
+        Returns:
+            SampleBatch: SampleBatch
+        """
+        concat_samples = list()
+        for s in samples:
+            if s.count > 0:
+                concat_samples.append(s)
+
+        concatd_data = dict()
+        for k in concat_samples[0].keys():
+            concatd_data[k] = np.concatenate([s[k] for s in concat_samples])
+
+        return SampleBatch(concatd_data)
+
+    def slice(self, start: int, end: int) -> "SampleBatch":
+        return SampleBatch({k: v[start:end] for k, v in self.items()})

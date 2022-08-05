@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:21:01
-LastEditTime: 2022-08-04 16:31:01
+LastEditTime: 2022-08-04 17:53:37
 LastEditors: hanyu
 Description: batched env
 FilePath: /RL_Lab/envs/batched_env.py
@@ -130,10 +130,10 @@ class BatchedEnv(BatchedEnvBase):
         return len(self._process)
 
     def reset(self):
-        obses_dict = {w_i: list() for w_i in range(len(self._env_fns))}
-        rewards_dict = {w_i: list() for w_i in range(len(self._env_fns))}
-        dones_dict = {w_i: list() for w_i in range(len(self._env_fns))}
-        infos_dict = {w_i: list() for w_i in range(len(self._env_fns))}
+        obses_dict = {w_i: None for w_i in range(len(self._env_fns))}
+        rewards_dict = {w_i: None for w_i in range(len(self._env_fns))}
+        dones_dict = {w_i: None for w_i in range(len(self._env_fns))}
+        infos_dict = {w_i: None for w_i in range(len(self._env_fns))}
 
         for q in self._command_queues:
             q.put(('reset', None))
@@ -141,17 +141,17 @@ class BatchedEnv(BatchedEnvBase):
         for q in self._result_queues:
             obs, reward, done, info, worker_idx = self._queue_get(q)
 
-            obses_dict[worker_idx].append(obs)
-            rewards_dict[worker_idx].append(reward)
-            dones_dict[worker_idx].append(done)
+            obses_dict[worker_idx] = obs
+            rewards_dict[worker_idx] = reward
+            dones_dict[worker_idx] = done
 
         return obses_dict, rewards_dict, dones_dict, infos_dict
 
     def step(self, actions: list):
-        obses_dict = {w_i: list() for w_i in range(len(self._env_fns))}
-        rewards_dict = {w_i: list() for w_i in range(len(self._env_fns))}
-        dones_dict = {w_i: list() for w_i in range(len(self._env_fns))}
-        infos_dict = {w_i: list() for w_i in range(len(self._env_fns))}
+        obses_dict = {w_i: None for w_i in range(len(self._env_fns))}
+        rewards_dict = {w_i: None for w_i in range(len(self._env_fns))}
+        dones_dict = {w_i: None for w_i in range(len(self._env_fns))}
+        infos_dict = {w_i: None for w_i in range(len(self._env_fns))}
 
         for q, action in zip(self._command_queues, actions):
             q.put(('step', action))
@@ -161,10 +161,10 @@ class BatchedEnv(BatchedEnvBase):
                 obs, reward, done, info, worker_idx = self._queue_get(q)
             except Empty:
                 pass
-            obses_dict[worker_idx].append(obs)
-            rewards_dict[worker_idx].append(reward)
-            dones_dict[worker_idx].append(done)
-            infos_dict[worker_idx].append(info)
+            obses_dict[worker_idx] = obs
+            rewards_dict[worker_idx] = reward
+            dones_dict[worker_idx] = done
+            infos_dict[worker_idx] = info
 
         return obses_dict, rewards_dict, dones_dict, infos_dict
 

@@ -1,17 +1,20 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:53:16
-LastEditTime: 2022-08-03 20:33:09
+LastEditTime: 2022-08-04 20:35:41
 LastEditors: hanyu
 Description: ppo policy
 FilePath: /RL_Lab/alogrithm/ppo/ppo_policy.py
 '''
+from typing import List
 import numpy as np
 import tensorflow as tf
 from configs.config_base import Params
 from models.categorical_model import CategoricalModel
 from policy.policy_base import PolicyBase
 from policy.policy_utils import explained_variance
+from policy.sample_batch import SampleBatch
+from postprocess.postprocess import Postprocessing
 
 
 class PPOPolicy(PolicyBase):
@@ -35,7 +38,7 @@ class PPOPolicy(PolicyBase):
         self.nbatch_train = self.nbatch // self.params.trainer.num_mini_batches
         assert self.nbatch % self.params.trainer.num_mini_batches == 0
 
-    def update(self, rollouts: dict) -> dict:
+    def update(self, rollouts: SampleBatch) -> dict:
         """Update Policy Network and Value Network
 
         Args:
@@ -48,18 +51,13 @@ class PPOPolicy(PolicyBase):
 
         for i in range(self.train_iter):
 
-            losses = self._inner_update_loop(
-                rollouts["obses"], rollouts["actions"], rollouts["advs"],
-                rollouts["returns"], rollouts["logp"], rollouts["logits"],
-                rollouts["values"], indexs)
+            losses = self._inner_update_loop(rollouts, indexs)
 
-        ev = explained_variance(rollouts["values"], rollouts["returns"])
+        ev = explained_variance(rollouts[SampleBatch.VF_PREDS], rollouts[Postprocessing.VALUE_TARGETS])
         losses["explained_variance"] = ev
         return losses
 
-    def _inner_update_loop(self, obses: np.array, actions: np.array,
-                           advs: np.array, rets: np.array, logp_t: np.array,
-                           prev_logits: np.array, prev_fn_out: np.array,
+    def _inner_update_loop(self, rollouts: SampleBatch,
                            indexs: np.array) -> dict:
         """Make update with random sampled minibatches and return mean kl-divvergence for early breaking
 
@@ -79,11 +77,8 @@ class PPOPolicy(PolicyBase):
 
         for start in range(0, self.nbatch, self.nbatch_train):
             end = start + self.nbatch_train
-            slices = indexs[start:end]
-            losses = self._train_one_step(obses[slices], actions[slices],
-                                          advs[slices], logp_t[slices],
-                                          rets[slices], prev_logits[slices],
-                                          prev_fn_out[slices])
+            # slices = indexs[start:end]
+            losses = self._train_one_step(rollouts.slice(start, end))
             means.append([
                 losses['policy_loss'], losses['value_loss'],
                 losses['entropy_loss'], losses['approx_ent'],
@@ -103,11 +98,9 @@ class PPOPolicy(PolicyBase):
             # "explained_variance": ev
         }
 
-    def _train_one_step(self, obs, act, adv, logp_old, rets, prev_logits,
-                        prev_vf_out):
+    def _train_one_step(self, mini_rollouts: SampleBatch):
         with tf.GradientTape() as tape:
-            _losses = self._loss(obs, logp_old, act, adv, rets, prev_logits,
-                                 prev_vf_out)
+            _losses = self._loss(mini_rollouts)
 
         trainable_variables = self.model.trainable_variables()
         # trainable_variables = self.model.base_model.trainable_variables
@@ -119,26 +112,26 @@ class PPOPolicy(PolicyBase):
         self.optimizer.apply_gradients(list(zip(grads, trainable_variables)))
         return _losses
 
-    def _loss(self, obs, logp_old, act, adv, rets, prev_logits, prev_vf_out):
+    def _loss(self, mini_rollouts: SampleBatch):
         # Depending on the policy(categorical or gaussian)
         # output from the network are logits or mu
-        logits, values = self.model({"obs": obs})
+        logits, values = self.model({"obs": mini_rollouts[SampleBatch.OBS]})
 
-        logp = self.model.logp(logits, act)
-        ratio = tf.exp(logp - logp_old)
-        action_kl = self.model.kl(prev_logits, logits)
+        logp = self.model.logp(logits, mini_rollouts[SampleBatch.ACTIONS])
+        ratio = tf.exp(logp - mini_rollouts[SampleBatch.ACTION_LOGP])
+        action_kl = self.model.kl(mini_rollouts[SampleBatch.LOGITS], logits)
         kl_loss = tf.reduce_mean(action_kl)
 
-        pg_loss1 = -adv * ratio
-        pg_loss2 = -adv * tf.clip_by_value(ratio, 1.0 - self.clip_ratio,
-                                           1.0 + self.clip_ratio)
+        pg_loss1 = -mini_rollouts[Postprocessing.ADVANTAGES] * ratio
+        pg_loss2 = -mini_rollouts[Postprocessing.ADVANTAGES] * tf.clip_by_value(
+            ratio, 1.0 - self.clip_ratio, 1.0 + self.clip_ratio)
         # For maxmizing via backprop losses must have negative sign
         policy_loss = tf.reduce_mean(tf.math.maximum(pg_loss1, pg_loss2))
 
         entropy = self.model.entropy(logits)
         entropy_loss = tf.reduce_mean(entropy)
 
-        approx_kl = .5 * tf.reduce_mean(tf.square(logp_old - logp))
+        approx_kl = .5 * tf.reduce_mean(tf.square(mini_rollouts[SampleBatch.ACTION_LOGP] - logp))
         approx_ent = tf.reduce_mean(-logp)
         clipfrac = tf.reduce_mean(
             tf.cast(tf.greater(tf.abs(ratio - 1.0), self.clip_ratio),
@@ -146,10 +139,10 @@ class PPOPolicy(PolicyBase):
 
         # value_loss = tf.reduce_mean(tf.square(rets - values))
         vpred = values
-        vpred_clipped = prev_vf_out + tf.clip_by_value(
-            vpred - prev_vf_out, -self.clip_ratio, self.clip_ratio)
-        vf_loss1 = tf.math.square(vpred - rets)
-        vf_loss2 = tf.math.square(vpred_clipped - rets)
+        vpred_clipped = mini_rollouts[SampleBatch.VF_PREDS] + tf.clip_by_value(
+            vpred - mini_rollouts[SampleBatch.VF_PREDS], -self.clip_ratio, self.clip_ratio)
+        vf_loss1 = tf.math.square(vpred - mini_rollouts[Postprocessing.VALUE_TARGETS])
+        vf_loss2 = tf.math.square(vpred_clipped - mini_rollouts[Postprocessing.VALUE_TARGETS])
         value_loss = tf.reduce_mean(tf.maximum(vf_loss1, vf_loss2))
 
         total_loss = policy_loss + self.kl_coef * kl_loss + value_loss * self.v_coef - entropy_loss * self.ent_coef
