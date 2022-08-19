@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:10:55
-LastEditTime: 2022-08-05 18:31:20
+LastEditTime: 2022-08-19 15:06:26
 LastEditors: hanyu
 Description: categorical model
 FilePath: /RL_Lab/models/categorical_model.py
@@ -60,7 +60,7 @@ class CategoricalModel(TFModelBase):
         logp = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.cast(action, tf.int32), logits=logits)
         # logp = -tf.nn.softmax_cross_entropy_with_logits(labels=x,
         #                                                 logits=logits)
-        return logp
+        return -logp
 
     def forward(self, inputs_dict: dict):
         # return self.forward_func(inputs_dict)
