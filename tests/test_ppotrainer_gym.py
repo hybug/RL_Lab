@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-20 14:58:57
-LastEditTime: 2022-08-03 20:33:19
+LastEditTime: 2022-08-19 11:39:41
 LastEditors: hanyu
 Description: test ppo trainer
 FilePath: /RL_Lab/tests/test_ppotrainer_gym.py
@@ -27,7 +27,7 @@ def set_global_seeds(i):
 
 
 def main():
-    # set_global_seeds(0)
+    set_global_seeds(0)
     ppo_trainer = PPOTrainer(
         params_config_path="/config/test_gym/test_CartPole-v1.yaml",
         working_dir=BASEDIR,
