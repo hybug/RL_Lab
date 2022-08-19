@@ -19,8 +19,9 @@ policy_params:
   train_iters: 2
   clip_ratio: 0.08
   target_kl: 0.01
+  kl_coef: 0.2
   ent_coef: 0.003
-  v_coef: 0.5
+  v_coef: 0.25
   clip_grads: 0.64
 
 
@@ -29,7 +30,7 @@ policy_params:
     - [16, 3, 1, 2]
     - [32, 3, 1, 2]
     - [32, 3, 1, 2]
-    # - [32, 3, 1, 2]
+    - [32, 3, 1, 2]
   activation: 
   output_activation: 
   kernel_initializer: 

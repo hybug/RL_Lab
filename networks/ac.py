@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:07:09
-LastEditTime: 2022-08-03 19:47:08
+LastEditTime: 2022-08-05 17:59:12
 LastEditors: hanyu
 Description: actor critic framework
 FilePath: /RL_Lab/networks/ac.py
@@ -21,15 +21,19 @@ def impala_cnn_actor_critic(params: PolicyParams,
     inputs = tf.keras.layers.Input(shape=tuple(params.input_shape),
                                    name=f"{name}_obs")
     conv_out = impala_cnn(inputs, params)
-    conv_out_vf = impala_cnn(inputs, params, name="impala_cnn_vf")
+    # conv_out_vf = impala_cnn(inputs, params, name="impala_cnn_vf")
 
-    vf_lantent = tf.keras.layers.Flatten()(conv_out_vf)
+    vf_lantent = tf.keras.layers.Flatten()(conv_out)
     lantent = tf.keras.layers.Flatten()(conv_out)
 
-    logits_out = tf.keras.layers.Dense(units=params.act_size,
-                                       name=name + "_logits_out")(lantent)
-    value_out = tf.keras.layers.Dense(units=1,
-                                      name=name + "_value_out")(vf_lantent)
+    logits_out = tf.keras.layers.Dense(
+        units=params.act_size,
+        kernel_initializer=tf.keras.initializers.Orthogonal(gain=0.01),
+        name=name + "_logits_out")(lantent)
+    value_out = tf.keras.layers.Dense(
+        units=1,
+        kernel_initializer=tf.keras.initializers.Orthogonal(),
+        name=name + "_value_out")(vf_lantent)
 
     model = tf.keras.Model(inputs, [logits_out, value_out])
     model.summary()

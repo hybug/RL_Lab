@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:10:55
-LastEditTime: 2022-08-03 17:14:23
+LastEditTime: 2022-08-05 18:31:20
 LastEditors: hanyu
 Description: categorical model
 FilePath: /RL_Lab/models/categorical_model.py
@@ -37,9 +37,9 @@ class CategoricalModel(TFModelBase):
         Returns:
             _type_: drawed action
         """
-        # return tf.squeeze(tf.random.categorical(logits, 1), axis=-1)
-        u = tf.random.uniform(tf.shape(logits), dtype=logits.dtype)
-        return tf.math.argmax(logits - tf.math.log(-tf.math.log(u)), axis=-1)
+        return tf.squeeze(tf.random.categorical(logits, 1), axis=-1)
+        # u = tf.random.uniform(tf.shape(logits), dtype=logits.dtype)
+        # return tf.math.argmax(logits - tf.math.log(-tf.math.log(u)), axis=-1)
 
     def logp(self, logits, action):
         # logp_all = tf.nn.log_softmax(logits)
@@ -53,13 +53,13 @@ class CategoricalModel(TFModelBase):
         #       the implementation does not allow second-order derivatives...
         # ?????????
 
-        if action.dtype in (tf.float16, tf.float32, tf.float64):
-            action = tf.cast(action, tf.int64)
-        if action.dtype in (tf.uint8, tf.int16, tf.int32, tf.int64):
-            x = tf.one_hot(action, depth=self.act_size)
-        # logp = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=action, logits=logits)
-        logp = -tf.nn.softmax_cross_entropy_with_logits(labels=x,
-                                                        logits=logits)
+        # if action.dtype in (tf.float16, tf.float32, tf.float64):
+        #     action = tf.cast(action, tf.int32)
+        # if action.dtype in (tf.uint8, tf.int16, tf.int32, tf.int64):
+        #     x = tf.one_hot(action, depth=self.act_size)
+        logp = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=tf.cast(action, tf.int32), logits=logits)
+        # logp = -tf.nn.softmax_cross_entropy_with_logits(labels=x,
+        #                                                 logits=logits)
         return logp
 
     def forward(self, inputs_dict: dict):

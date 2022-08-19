@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:06:08
-LastEditTime: 2022-08-02 15:03:18
+LastEditTime: 2022-08-05 17:02:02
 LastEditors: hanyu
 Description: cnn
 FilePath: /RL_Lab/networks/cnn.py
@@ -85,7 +85,7 @@ def impala_cnn(inputs, params: PolicyParams, name="impala_cnn"):
     conv_out = tf.keras.layers.Flatten()(conv_out)
     conv_out = tf.keras.layers.Activation("relu",
                                           name=f"{name}_relu_3")(conv_out)
-    conv_out = tf.keras.layers.Dense(units=256)(conv_out)
+    conv_out = tf.keras.layers.Dense(units=256, activation="relu")(conv_out)
     # conv_out = tf.keras.layers.Activation("relu",
     #                                       name=f"{name}_relu_4")(conv_out)
     return conv_out

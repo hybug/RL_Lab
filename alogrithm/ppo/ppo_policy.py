@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:53:16
-LastEditTime: 2022-08-05 11:37:35
+LastEditTime: 2022-08-05 17:33:15
 LastEditors: hanyu
 Description: ppo policy
 FilePath: /RL_Lab/alogrithm/ppo/ppo_policy.py
@@ -51,12 +51,19 @@ class PPOPolicy(PolicyBase):
         """
         indexs = np.arange(self.nbatch)
 
+        # rollouts[Postprocessing.ADVANTAGES] = (
+        #     rollouts[Postprocessing.ADVANTAGES] -
+        #     rollouts[Postprocessing.ADVANTAGES].mean()) / (
+        #         rollouts[Postprocessing.ADVANTAGES].std() + 1e-8)
         for i in range(self.train_iter):
 
             losses = self._inner_update_loop(rollouts, indexs)
 
         self.update_kl(losses["mean_kl"])
 
+        # _, values = self.model({"obs": rollouts[SampleBatch.OBS]})
+        # ev = explained_variance(np.squeeze(values.numpy()),
+        #                         rollouts[Postprocessing.VALUE_TARGETS])
         ev = explained_variance(rollouts[SampleBatch.VF_PREDS],
                                 rollouts[Postprocessing.VALUE_TARGETS])
         # losses["explained_variance"] = ev
@@ -100,7 +107,7 @@ class PPOPolicy(PolicyBase):
             end = start + self.nbatch_train
             # slices = indexs[start:end]
             losses = self._train_one_step(rollouts.slice(start, end))
-            
+
             # Store the stats logging info
             for key, value in losses.items():
                 self.logger.store(name=key, value=value)
@@ -194,7 +201,7 @@ class PPOPolicy(PolicyBase):
             "mean_vf_loss": value_loss,
             "mean_entropy": entropy_loss,
             "mean_kl": kl_loss,
-            # "value_fn_out": values,
+            "value_fn_out": values,
             "clip_frac": clipfrac,
             "kl_coeff": self.kl_coef
         }

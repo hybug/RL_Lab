@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-20 14:58:57
-LastEditTime: 2022-08-03 19:34:55
+LastEditTime: 2022-08-05 18:32:12
 LastEditors: hanyu
 Description: test ppo trainer
 FilePath: /RL_Lab/tests/test_ppotrainer.py
@@ -27,7 +27,7 @@ def set_global_seeds(i):
 
 
 def main():
-    set_global_seeds(0)
+    set_global_seeds(1)
     ppo_trainer = PPOTrainer(
         params_config_path="/config/test_football/test_11_vs_11_easy_stochastic.yaml",
         working_dir=BASEDIR,
