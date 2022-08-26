@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:35:25
-LastEditTime: 2022-08-01 17:35:24
+LastEditTime: 2022-08-23 18:15:05
 LastEditors: hanyu
 Description: get logger
 FilePath: /RL_Lab/get_logger.py
@@ -10,18 +10,18 @@ FilePath: /RL_Lab/get_logger.py
 import os
 from dataclasses import dataclass
 from datetime import datetime
+from prettytable import PrettyTable
 
 import tensorflow as tf
 from loguru import logger
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
-logger.add(
-    BASEDIR + '/logs/log_' + '_{time:YYYY-MM-DD}.log',
-    level='INFO',
-    format=
-    '[{time:YYYY-MM-DDTHH:mm:ss}] [{module}:{line}] [{level}]: {message}',
-    rotation='00:00')
+logger.add(BASEDIR + '/logs/log_' + '_{time:YYYY-MM-DD}.log',
+           level='INFO',
+           format='[{time:YYYY-MM-DDTHH:mm:ss}] '
+           '[{module}:{line}] [{level}]: {message}',
+           rotation='00:00')
 
 
 @dataclass
@@ -55,24 +55,33 @@ class TFLogger():
     def store(self, name=None, value=None):
         if value is not None:
             if name not in self.metrics.keys():
-                self.metrics[name] = tf.keras.metrics.Mean(name=name)
+                if name in ["ts"]:
+                    self.metrics[name] = tf.keras.metrics.Sum(name=name)
+                else:
+                    self.metrics[name] = tf.keras.metrics.Mean(name=name)
             self.metrics[name].update_state(value)
 
     def log_metrics(self, epoch: int):
-        logger.info('MEAN METRICS START')
-        logger.info(f'Epoch: {epoch}')
+        # logger.info('MEAN METRICS START')
+        # logger.info(f'Epoch: {epoch}')
 
-        if not self.metrics:
-            logger.info("No metrics")
-        else:
+        # if not self.metrics:
+        #     logger.info("No metrics")
+        # else:
+        pt = PrettyTable()
+        pt.field_names = ["Item", "Value"]
+        pt.add_row(["epoch", epoch])
 
-            for key, metric in self.metrics.items():
-                value = metric.result()
-                logger.info(f'{key}: {value}')
+        ts = self.metrics["ts"].result().numpy().copy()
+        for key, metric in self.metrics.items():
+            value = metric.result()
+            # logger.info(f'{key}: {value}')
+            pt.add_row([key, value.numpy()])
 
-                if key not in ["Episode Reward", "Episode Length"
-                               ] or value != 0:
+            if key not in ["Episode Reward", "Episode Length"] or value != 0:
+                with tf.name_scope("rl stats"):
                     with self.summary_writer.as_default():
-                        tf.summary.scalar(key, value, step=epoch)
-                metric.reset_states()
-        logger.info("MEAN METRICS END")
+                        tf.summary.scalar(key, value, step=ts)
+            metric.reset_states()
+
+        logger.info('\n' + pt.__str__())

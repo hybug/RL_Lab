@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-LastEditTime: 2022-08-03 20:19:41
+LastEditTime: 2022-08-26 11:03:37
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
@@ -9,144 +9,99 @@ FilePath: /RL_Lab/workers/rollout_worker.py
 from typing import Tuple
 
 import numpy as np
-import tensorflow as tf
 from configs.config_base import Params
 from envs.batched_env import BatchedEnv
+from models.model_base import TFModelBase
+from policy.sample_batch import SampleBatch
+from policy.sample_batch_builder import SampleBatchBuilder
+from postprocess.postprocess import compute_gae_from_sample_batch
+from preprocess.feature_encoder.fe_no import FeatureEncoder
 
 
 class RolloutWorker:
     def __init__(self,
                  params: Params,
                  batched_env: BatchedEnv,
-                 model: tf.keras.Model,
+                 model: TFModelBase,
                  steps_per_epoch: int,
-                 feture_encoder=None,
+                 feature_encoder: FeatureEncoder,
                  gamma: float = 0.99,
                  lam: float = 0.97) -> None:
         self.batched_env = batched_env
         self.params = params
         self.model = model
-        self.fe = feture_encoder
+        self.fe = feature_encoder
         self.steps_per_epoch = steps_per_epoch
         self.gamma = gamma
         self.lam = lam
 
-        self._obs = None
-        self._rews = None
-        self._dones = None
+        self._obs_dict = None
+        self._rews_dict = None
+        self._dones_dict = None
         self._first_reset = False
 
     def rollout(self) -> Tuple[dict, dict]:
         if not self._first_reset:
-            self._obs, self._rews, self._dones, _ = self.batched_env.reset()
+            self._obs_dict, self._rews_dict, self._dones_dict, _ = self.batched_env.reset(
+            )
             self._first_reset = True
-
-        obses, rews, dones = list(), list(), list()
-        actions, values, logp, logits = list(), list(), list(), list()
-        ep_rews, ep_lens = list(), list()
+        
+        # Init sample_batch_builder for every env
+        _sample_batch_builders = [
+            SampleBatchBuilder() for _ in range(self.params.env.num_envs)
+        ]
 
         for step in range(self.steps_per_epoch):
 
-            # Model infer actions TODO
-            if self.fe:
-                obs = self.fe.encode(self._obs)
-                obs = self.fe.concate_observation_from_raw(obs)
-            else:
-                # obs = np.array(self._obs) / 255
-                obs = np.array(self._obs)
+            # Model infer actions
             actions_t, logp_t, values_t, logits_t = self.model.get_action_logp_value(
-                {"obs": obs})
+                {"obs": self.fe.transform(self._obs_dict)})
 
-            obses.append(obs.copy())
-            dones.append(self._dones)
-            actions.append(actions_t)
-            values.append(values_t)
-            logits.append(logits_t)
-            logp.append(logp_t)
+            assert len(actions_t) == len(logp_t) == len(values_t) == len(
+                logits_t) == self.params.env.num_envs
+
+            # Save obs(t), dones(t), actions(t), logp(t), values(t) into sample_batch
+            for w_i in range(self.params.env.num_envs):
+                _sample_batch_builders[w_i].add_values(
+                    agent_index=w_i,
+                    obs=self.fe.transform(self._obs_dict[w_i]),
+                    actions=actions_t[w_i],
+                    dones=self._dones_dict[w_i],
+                    vf_preds=values_t[w_i],
+                    logits=logits_t[w_i],
+                    action_logp=logp_t[w_i])
 
             # Envs stepping actions
-            self._obs, self._rews, self._dones, infos = self.batched_env.step(
+            self._obs_dict, self._rews_dict, self._dones_dict, infos_dict = self.batched_env.step(
                 actions_t)
 
-            for info in infos:
-                if info and "score_reward" not in info.keys():
-                    ep_rews.append(info['episode_reward'])
-                    ep_lens.append(info['episode_length'])
-            # Save obs(t), dones(t), actions(t), logp(t), values(t), rews(t+1) in one stepping
-            rews.append(self._rews)
+            # Save rews(t+1) into sample_batch
+            for w_i in range(self.params.env.num_envs):
+                _sample_batch_builders[w_i].add_values(
+                    rewards=self._rews_dict[w_i], infos=infos_dict[w_i])
+            # rews.append(self._rews)
 
         # In end for steps_per_epoch
         # Get the last Values for BOOTSTRAPING
         # Or complete the leftover steps& cutoff the trajectory outside step_per_epoch TODO
 
-        # Model infer the last actions TODO
-        if self.fe:
-            obs = self.fe.encode(self._obs)
-            obs = self.fe.concate_observation_from_raw(obs)
-        else:
-            obs = np.array(self._obs)
-        #         obs = np.array(self._obs) / 255
-        _, _, values_t, _ = self.model.get_action_logp_value(
-            {"obs": obs})
-        last_values = values_t
+        # Model infer the last actions
+        _, _, last_values, _ = self.model.get_action_logp_value(
+            {"obs": self.fe.transform(self._obs_dict)})
 
-        obses = np.array(obses, dtype=np.float32)
-        rews = np.array(rews, dtype=np.float32)
-        dones = np.array(dones, dtype=np.bool)
-        actions = np.array(actions, dtype=np.float32)
-        values = np.array(values, dtype=np.float32)
-        logits = np.array(logits, dtype=np.float32)
-        logp = np.array(logp, dtype=np.float32)
+        batches = [s_b_b.build_and_reset() for s_b_b in _sample_batch_builders]
 
-        # Discount / Bootstraping Values
-        # And calculate Advantages
-        # TODO waiting for abstract encapsulation
-        rets = np.zeros_like(rews)
-        advs = np.zeros_like(rews)
-        last_gae_lam = 0
+        for i, rollout_batch in enumerate(batches):
+            rollout_batch[SampleBatch.REWARDS] = np.sign(
+                rollout_batch[SampleBatch.REWARDS])
+            assert rollout_batch.count == self.steps_per_epoch
+            rollout_batch = compute_gae_from_sample_batch(
+                rollout=rollout_batch,
+                last_value=last_values[i],
+                last_done=self._dones_dict[i],
+                gamma=self.gamma,
+                lam=self.lam)
 
-        for t in reversed(range(self.steps_per_epoch)):
-            if t == self.steps_per_epoch - 1:
-                # The last sampling step
-                next_non_terminal = np.array(
-                    [1
-                     for _ in range(self.batched_env.num_envs)]) - self._dones
-                next_values = last_values
-            else:
-                next_non_terminal = np.array(
-                    [1
-                     for _ in range(self.batched_env.num_envs)]) - dones[t + 1]
-                next_values = values[t + 1]
+        batches = SampleBatch.concat_samples(batches)
 
-            delta = rews[
-                t] + self.gamma * next_values * next_non_terminal - values[t]
-            advs[
-                t] = last_gae_lam = delta + self.gamma * self.lam * next_non_terminal * last_gae_lam
-
-        rets = advs + values
-        # Normalize advantages
-        advs = (advs - advs.mean()) / (advs.std() + 1e-8)
-
-        return self._flatten_rollout(obses, rews, dones, actions, logp, values,
-                                     advs, rets, logits), {
-                                         "episode_rewards": ep_rews,
-                                         "episode_lengths": ep_lens
-                                     }
-
-    def _flatten_rollout(self, obses: np.array, rews: np.array,
-                         dones: np.array, actions: np.array, logp: np.array,
-                         values: np.array, advs: np.array,
-                         rets: np.array, logits: np.array) -> dict:
-        obses = obses.reshape((-1, ) + obses.shape[-len(self.params.policy.input_shape):])
-        logits = logits.reshape((-1, ) + logits.shape[-1:])
-        return {
-            "obses": obses,
-            "rews": rews.flatten(),
-            "dones": dones.flatten(),
-            "actions": actions.flatten(),
-            "logp": logp.flatten(),
-            "values": values.flatten(),
-            "advs": advs.flatten(),
-            "returns": rets.flatten(),
-            "logits": logits
-        }
+        return batches

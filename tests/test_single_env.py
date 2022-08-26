@@ -1,42 +1,23 @@
 '''
 Author: hanyu
 Date: 2022-07-29 16:04:22
-LastEditTime: 2022-08-03 15:34:01
+LastEditTime: 2022-08-23 21:18:24
 LastEditors: hanyu
 Description: test
 FilePath: /RL_Lab/tests/test_single_env.py
 '''
 from random import choice
-# import gfootball.env as football_env
-# import gfootball
-# from config import BASEDIR
-
-# env = football_env.create_environment(env_name="11_vs_11_easy_stochastic",
-#                                       stacked=True,
-#                                       rewards="scoring,checkpoints",
-#                                       write_goal_dumps=False,
-#                                       logdir=BASEDIR + "/logs/game_log/",
-#                                     #   write_full_episode_dumps=True,
-#                                       render=False,
-#                                       dump_frequency=0)
-
 import gym
+from envs.wrappers.atari_wrappers import is_atari, wrap_deepmind
+# env = gym.make(f"ALE/{env_params.env_name}-v5")
+env = gym.make("BeamRiderNoFrameskip-v4")
+if is_atari(env):
+    env = wrap_deepmind(env)
+    env_type = 'gym-atari-deepmind'
 
-env = gym.make("CartPole-v1")
-ret = list()
-for _ in range(50):
-
-    obs = env.reset()
-    done = False
-    i = 0
-    while not done:
-        action = choice(range(2))
-        # if i < 2:
-        #     action = 5
-
-        obs, rew, done, info = env.step(action)
-        print(action, rew, i)
-        i += 1
-    ret.append(i)
-print(sum(ret) / len(ret))
-print(ret)
+done = False
+env.reset()
+while not done:
+    a = choice(range(8))
+    obs, reward, done, info = env.step(a)
+    print(reward)

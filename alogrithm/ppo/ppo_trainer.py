@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 17:45:25
-LastEditTime: 2022-08-03 20:15:54
+LastEditTime: 2022-08-26 11:07:12
 LastEditors: hanyu
 Description: ppo trainer
 FilePath: /RL_Lab/alogrithm/ppo/ppo_trainer.py
@@ -14,7 +14,8 @@ from envs.env_utils import create_batched_env
 from get_logger import BASEDIR, TFLogger
 from models.categorical_model import CategoricalModel
 from networks.network_utils import nn_builder
-from preprocess.feature_encoder.fe_gfootball import FeatureEncoderGFootball
+from policy.sample_batch import SampleBatch
+from preprocess.feature_encoder.fe_no import NoFeatureEncoder
 from trainers.trainer_base import TrainerBase
 from workers.rollout_worker import RolloutWorker
 
@@ -43,7 +44,7 @@ class PPOTrainer(TrainerBase):
 
         # Initialize nerual network
         self.network = nn_builder(
-            self.params.trainer.nn_architecure)(params=self.params.policy)
+            self.params.policy.nn_architecure)(params=self.params.policy)
 
         # Initialize model
         if not self.params.env.is_act_continuous:
@@ -57,17 +58,14 @@ class PPOTrainer(TrainerBase):
             raise NotImplementedError("Error >> Restore model not implemented")
 
         # Initialize feature encoder
-        if "football" in self.params.env.env_name:
-            self.fe = FeatureEncoderGFootball()
-        else:
-            self.fe = None
+        self.fe = NoFeatureEncoder(params=self.params)
 
         # Initialize rollout worker
         self.rollout_worker = RolloutWorker(
             params=self.params,
             batched_env=self.env,
             model=self.model,
-            # feture_encoder=self.fe,
+            feature_encoder=self.fe,
             steps_per_epoch=self.params.trainer.steps_per_epoch,
             gamma=self.params.trainer.gamma,
             lam=self.params.trainer.lam)
@@ -75,36 +73,34 @@ class PPOTrainer(TrainerBase):
         # Initialize the PPO policy
         self.ppo_policy = PPOPolicy(model=self.model,
                                     params=self.params,
+                                    logger=self.logger,
                                     num_envs=self.params.env.num_envs)
 
     def train(self):
         # Starting training
         for epoch in range(self.params.trainer.epochs):
             # Rollout one epoch and get rollout data
-            rollouts, episode_infos = self.rollout_worker.rollout()
+            rollout_sample_batches = self.rollout_worker.rollout()
 
             # Update the ppo policy
-            losses = self.ppo_policy.update(rollouts)
+            _ = self.ppo_policy.update(rollout_sample_batches)
 
-            # Logging training information
-            self.logger.store(name="Loss Policy", value=losses["policy_loss"])
-            self.logger.store(name="Loss Value", value=losses["value_loss"])
-            self.logger.store(name="Loss Entropy", value=losses["entropy_loss"])
-            self.logger.store(name="Approx KL", value=losses["approx_kl"])
-            self.logger.store(name="Approx Entropy",
-                              value=losses["approx_ent"])
-            self.logger.store(name="Clip Frac", value=losses["clipfrac"])
-            self.logger.store(name="Explained Variance", value=losses["explained_variance"])
             # Logging episode information
-            for episode_rew, episode_len in zip(
-                    episode_infos["episode_rewards"],
-                    episode_infos["episode_lengths"]):
-                self.logger.store(name="Episode Reward", value=episode_rew)
-                self.logger.store(name="Episode Length", value=episode_len)
+            self.logger.store("ts", (epoch + 1) *
+                              self.params.trainer.steps_per_epoch * self.params.env.num_envs)
+            for info in rollout_sample_batches[SampleBatch.INFOS]:
+                if "episode_reward" in info.keys():
+                    self.logger.store(name="Episode Reward",
+                                      value=info["episode_reward"])
+                if "episode_length" in info.keys():
+                    self.logger.store(name="Episode Length",
+                                      value=info["episode_length"])
 
             # Save model frequency
             if (epoch + 1) % self.params.trainer.save_freq == 0:
-                self.model.save(BASEDIR + f"/saved_models/{self.experiment_name}/checkpoint_{epoch}")
+                self.model.save(
+                    BASEDIR +
+                    f"/saved_models/{self.experiment_name}/checkpoint_{epoch}")
 
             self.logger.log_metrics(epoch)
 

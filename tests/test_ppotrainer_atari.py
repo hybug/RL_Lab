@@ -1,11 +1,12 @@
 '''
 Author: hanyu
-Date: 2022-07-20 14:58:57
-LastEditTime: 2022-08-05 11:39:40
+Date: 2022-08-19 15:20:54
+LastEditTime: 2022-08-23 20:38:21
 LastEditors: hanyu
-Description: test ppo trainer
-FilePath: /RL_Lab/tests/test_ppotrainer_gym.py
+Description: test
+FilePath: /RL_Lab/tests/test_ppotrainer_atari.py
 '''
+
 from alogrithm.ppo.ppo_trainer import PPOTrainer
 from get_logger import BASEDIR
 import numpy as np
@@ -29,9 +30,9 @@ def set_global_seeds(i):
 def main():
     set_global_seeds(0)
     ppo_trainer = PPOTrainer(
-        params_config_path="/config/test_gym/test_CartPole-v1.yaml",
+        params_config_path="/config/test_atari/test_BeamRider.yaml",
         working_dir=BASEDIR,
-        experiment_name="test_CartPole-v1_withklloss_test")
+        experiment_name="test_BeamRider_test")
     ppo_trainer.train()
     print()
 
