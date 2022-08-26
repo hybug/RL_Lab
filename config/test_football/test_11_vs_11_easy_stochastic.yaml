@@ -1,19 +1,7 @@
 env_params:
-  n_player: 2
   env_name: "football-11_vs_11_easy_stochastic"
-  reward: "scoring,checkpoints"
   num_envs: 16
-  is_obs_continuous: false
-  is_act_continuous: false
-  obs_type: 
-    - "dict"
-    - "dict"
-  max_step: 3000
-  agent_nums: 
-    - 1
-    - 0
-  act_box: 
-    discrete_n: 19
+
 policy_params:
   lr: 0.000343
   train_iters: 2

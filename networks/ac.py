@@ -17,7 +17,7 @@ from networks.network_utils import register_network
 
 @register_network("impala_cnn_actor_critic")
 def impala_cnn_actor_critic(params: PolicyParams,
-                            name="impala_cnn_actor_critic"):
+                            name="impala_cnn_ac"):
     inputs = tf.keras.layers.Input(shape=tuple(params.input_shape),
                                    name=f"{name}_obs")
     conv_out = impala_cnn(inputs, params)
@@ -40,6 +40,7 @@ def impala_cnn_actor_critic(params: PolicyParams,
 
     def forward(inputs: dict):
         logits, value = model(inputs['obs'])
+        value = tf.reshape(value, [-1])
         return logits, value
 
     return {"forward": forward, "model": model}
