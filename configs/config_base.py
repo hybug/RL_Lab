@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:32:24
-LastEditTime: 2022-08-03 11:37:53
+LastEditTime: 2022-08-26 11:07:35
 LastEditors: hanyu
 Description: basic config
 FilePath: /RL_Lab/configs/config_base.py
@@ -61,8 +61,6 @@ class EnvParams:
 class TrainParams:
 
     trainer: str = ""
-    # Choose from architecture defined in network.py
-    nn_architecure: str = ''
 
     # Training Hyperparameters
     epochs: int = 1000  # Number of epochs
@@ -83,13 +81,16 @@ class PolicyParams:
     lr: float = 0.001
     train_iters: int = 5
 
-    clip_ratio: float = 0.2
+    clip_param: float = 0.2
+    vf_clip_param: float = 10
     target_kl: float = 0.01
     ent_coef: float = 0.1
-    v_coef: float = 0.5
+    vf_loss_coef: float = 0.5
     clip_grads: float = 0.5
 
     # Network Hyperparameters
+    # Choose from architecture defined in network.py
+    nn_architecure: str = ''
     cnn_filters: list = field(default_factory=list)
     pool_size: list = field(default_factory=list)
     mlp_filters: list = field(default_factory=list)

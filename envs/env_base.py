@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:30:23
-LastEditTime: 2022-08-03 11:41:18
+LastEditTime: 2022-08-26 11:02:07
 LastEditors: hanyu
 Description: env base
 FilePath: /RL_Lab/envs/env_base.py
@@ -30,6 +30,15 @@ def _init_env(env_params: EnvParams, seed: int, worker_id: int):
         env_params.env_name = env_params.env_name.split(' ')[-1]
         env_type = 'gym'
         env = gym.make(env_params.env_name)
+    elif "atari" in env_params.env_name:
+        import gym
+        from envs.wrappers.atari_wrappers import is_atari, wrap_deepmind
+        env_params.env_name = env_params.env_name.split(" ")[-1]
+        env_type = 'gym-atari'
+        env = gym.make(f"{env_params.env_name}NoFrameskip-v4")
+        if is_atari(env):
+            env = wrap_deepmind(env)
+            env_type = 'gym-atari-deepmind'
     else:
         env = None
         env_type = None

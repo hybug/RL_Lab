@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:53:16
-LastEditTime: 2022-08-05 17:33:15
+LastEditTime: 2022-08-26 11:04:12
 LastEditors: hanyu
 Description: ppo policy
 FilePath: /RL_Lab/alogrithm/ppo/ppo_policy.py
@@ -33,7 +33,7 @@ class PPOPolicy(PolicyBase):
         self.model = model
         self.logger = logger
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.lr,
-                                                  epsilon=1e-5)
+                                                  epsilon=1e-7)
 
         self.num_envs = num_envs
         self.nbatch = self.num_envs * self.params.trainer.steps_per_epoch
@@ -51,23 +51,12 @@ class PPOPolicy(PolicyBase):
         """
         indexs = np.arange(self.nbatch)
 
-        # rollouts[Postprocessing.ADVANTAGES] = (
-        #     rollouts[Postprocessing.ADVANTAGES] -
-        #     rollouts[Postprocessing.ADVANTAGES].mean()) / (
-        #         rollouts[Postprocessing.ADVANTAGES].std() + 1e-8)
         for i in range(self.train_iter):
 
             losses = self._inner_update_loop(rollouts, indexs)
 
         self.update_kl(losses["mean_kl"])
 
-        # _, values = self.model({"obs": rollouts[SampleBatch.OBS]})
-        # ev = explained_variance(np.squeeze(values.numpy()),
-        #                         rollouts[Postprocessing.VALUE_TARGETS])
-        ev = explained_variance(rollouts[SampleBatch.VF_PREDS],
-                                rollouts[Postprocessing.VALUE_TARGETS])
-        # losses["explained_variance"] = ev
-        self.logger.store("explained_variance", ev)
         return losses
 
     def update_kl(self, sampled_kl):
@@ -112,24 +101,11 @@ class PPOPolicy(PolicyBase):
             for key, value in losses.items():
                 self.logger.store(name=key, value=value)
 
-        #     means.append([
-        #         losses['policy_loss'], losses['value_loss'],
-        #         losses['entropy_loss'], losses['approx_ent'],
-        #         losses['approx_kl'], losses["clipfrac"]
-        #     ])
-        # means = np.asarray(means)
-        # means = np.mean(means, axis=0)
-        # ev = explained_variance(prev_fn_out, rets)
+            ev = explained_variance(
+                rollouts.slice(start, end)[Postprocessing.VALUE_TARGETS],
+                losses["value_fn_out"])
+            self.logger.store("explained_variance", ev)
 
-        # return {
-        #     "policy_loss": means[0],
-        #     "value_loss": means[1],
-        #     "entropy_loss": means[2],
-        #     "approx_ent": means[3],
-        #     "approx_kl": means[4],
-        #     "clipfrac": means[5]
-        #     # "explained_variance": ev
-        # }
         return losses
 
     def _train_one_step(self, mini_rollouts: SampleBatch):
@@ -141,7 +117,7 @@ class PPOPolicy(PolicyBase):
 
         # Get gradients
         grads = tape.gradient(_losses['total_loss'], trainable_variables)
-        grads, grad_norm = tf.clip_by_global_norm(grads, self.clip_grads)
+        # grads, grad_norm = tf.clip_by_global_norm(grads, self.clip_grads)
 
         self.optimizer.apply_gradients(list(zip(grads, trainable_variables)))
         return _losses
@@ -149,7 +125,7 @@ class PPOPolicy(PolicyBase):
     def _loss(self, mini_rollouts: SampleBatch):
         # Depending on the policy(categorical or gaussian)
         # output from the network are logits or mu
-        logits, values = self.model({"obs": mini_rollouts[SampleBatch.OBS]})
+        logits, values = self.model.forward({"obs": mini_rollouts[SampleBatch.OBS]})
 
         logp = self.model.logp(logits, mini_rollouts[SampleBatch.ACTIONS])
         ratio = tf.exp(logp - mini_rollouts[SampleBatch.ACTION_LOGP])
@@ -158,43 +134,24 @@ class PPOPolicy(PolicyBase):
 
         pg_loss1 = -mini_rollouts[Postprocessing.ADVANTAGES] * ratio
         pg_loss2 = -mini_rollouts[Postprocessing.ADVANTAGES] * tf.clip_by_value(
-            ratio, 1.0 - self.clip_ratio, 1.0 + self.clip_ratio)
+            ratio, 1.0 - self.clip_param, 1.0 + self.clip_param)
         # For maxmizing via backprop losses must have negative sign
         policy_loss = tf.reduce_mean(tf.math.maximum(pg_loss1, pg_loss2))
 
         entropy = self.model.entropy(logits)
         entropy_loss = tf.reduce_mean(entropy)
 
-        # approx_kl = .5 * tf.reduce_mean(
-        #     tf.square(mini_rollouts[SampleBatch.ACTION_LOGP] - logp))
-        # approx_ent = tf.reduce_mean(-logp)
         clipfrac = tf.reduce_mean(
-            tf.cast(tf.greater(tf.abs(ratio - 1.0), self.clip_ratio),
+            tf.cast(tf.greater(tf.abs(ratio - 1.0), self.clip_param),
                     tf.float32))
 
-        # value_loss = tf.reduce_mean(tf.square(rets - values))
         vpred = values
-        vpred_clipped = mini_rollouts[SampleBatch.VF_PREDS] + tf.clip_by_value(
-            vpred - mini_rollouts[SampleBatch.VF_PREDS], -self.clip_ratio,
-            self.clip_ratio)
-        vf_loss1 = tf.math.square(vpred -
-                                  mini_rollouts[Postprocessing.VALUE_TARGETS])
-        vf_loss2 = tf.math.square(vpred_clipped -
-                                  mini_rollouts[Postprocessing.VALUE_TARGETS])
-        value_loss = tf.reduce_mean(tf.maximum(vf_loss1, vf_loss2))
+        vf_loss = tf.math.square(vpred - mini_rollouts[Postprocessing.VALUE_TARGETS])
+        vf_loss_clipped = tf.clip_by_value(vf_loss, 0, self.vf_clip_param)
+        value_loss = tf.reduce_mean(vf_loss_clipped)
 
-        total_loss = policy_loss + self.kl_coef * kl_loss + value_loss * self.v_coef - entropy_loss * self.ent_coef
-        # total_loss = policy_loss + value_loss * self.v_coef - entropy_loss * self.ent_coef
+        total_loss = policy_loss + self.kl_coef * kl_loss + value_loss * self.vf_loss_coef - entropy_loss * self.ent_coef
 
-        # return {
-        #     "policy_loss": policy_loss,
-        #     "entropy_loss": entropy_loss,
-        #     "value_loss": value_loss,
-        #     "total_loss": total_loss,
-        #     "approx_kl": approx_kl,
-        #     "approx_ent": approx_ent,
-        #     "clipfrac": clipfrac
-        # }
         return {
             "total_loss": total_loss,
             "mean_policy_loss": policy_loss,

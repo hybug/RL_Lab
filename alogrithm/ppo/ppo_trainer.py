@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 17:45:25
-LastEditTime: 2022-08-05 15:05:54
+LastEditTime: 2022-08-26 11:07:12
 LastEditors: hanyu
 Description: ppo trainer
 FilePath: /RL_Lab/alogrithm/ppo/ppo_trainer.py
@@ -44,7 +44,7 @@ class PPOTrainer(TrainerBase):
 
         # Initialize nerual network
         self.network = nn_builder(
-            self.params.trainer.nn_architecure)(params=self.params.policy)
+            self.params.policy.nn_architecure)(params=self.params.policy)
 
         # Initialize model
         if not self.params.env.is_act_continuous:
@@ -85,30 +85,22 @@ class PPOTrainer(TrainerBase):
             # Update the ppo policy
             _ = self.ppo_policy.update(rollout_sample_batches)
 
-            # # Logging training information
-            # self.logger.store(name="Loss Policy", value=losses["policy_loss"])
-            # self.logger.store(name="Loss Value", value=losses["value_loss"])
-            # self.logger.store(name="Loss Entropy", value=losses["entropy_loss"])
-            # self.logger.store(name="Approx KL", value=losses["approx_kl"])
-            # self.logger.store(name="Approx Entropy",
-            #                   value=losses["approx_ent"])
-            # self.logger.store(name="Clip Frac", value=losses["clipfrac"])
-            # self.logger.store(name="Explained Variance", value=losses["explained_variance"])
             # Logging episode information
+            self.logger.store("ts", (epoch + 1) *
+                              self.params.trainer.steps_per_epoch * self.params.env.num_envs)
             for info in rollout_sample_batches[SampleBatch.INFOS]:
                 if "episode_reward" in info.keys():
-                    self.logger.store(name="Episode Reward", value=info["episode_reward"])
+                    self.logger.store(name="Episode Reward",
+                                      value=info["episode_reward"])
                 if "episode_length" in info.keys():
-                    self.logger.store(name="Episode Length", value=info["episode_length"])
-            # for episode_rew, episode_len in zip(
-            #         episode_infos["episode_rewards"],
-            #         episode_infos["episode_lengths"]):
-            #     self.logger.store(name="Episode Reward", value=episode_rew)
-            #     self.logger.store(name="Episode Length", value=episode_len)
+                    self.logger.store(name="Episode Length",
+                                      value=info["episode_length"])
 
             # Save model frequency
             if (epoch + 1) % self.params.trainer.save_freq == 0:
-                self.model.save(BASEDIR + f"/saved_models/{self.experiment_name}/checkpoint_{epoch}")
+                self.model.save(
+                    BASEDIR +
+                    f"/saved_models/{self.experiment_name}/checkpoint_{epoch}")
 
             self.logger.log_metrics(epoch)
 

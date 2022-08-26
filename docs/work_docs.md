@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2021-06-15 10:34:08
- * @LastEditTime: 2022-08-05 16:24:27
+ * @LastEditTime: 2022-08-26 10:50:42
  * @LastEditors: hanyu
  * @Description: work docs
  * @FilePath: /RL_Lab/docs/work_docs.md
@@ -121,3 +121,33 @@ Reproducing https://towardsdatascience.com/reproducing-google-research-football-
 - [ ] Finish Gfootbal's academy scenarios experiments
 - [ ] Reproducing https://towardsdatascience.com/reproducing-google-research-football-rl-results-ac75cf17190e
 - [ ] Check the ExplianceVariance calculation
+
+### 2022-08-19
+#### 1. Done
+- [x] Reproduced the CartPole-v1 with SampleBatch-Version
+#### 2. Todo
+- [ ] Reproducing reinforcemenr learning benchmarks: [BeamRider, Breakout, Qbert, SpaceInvaders]
+- [ ] Add the timestep variable into Tensorflow scale & logging info
+- [ ] Fix the zero represatation of Episode Reward in logging info 
+- [ ] Finish Gfootbal's academy scenarios experiments
+- [ ] Reproducing https://towardsdatascience.com/reproducing-google-research-football-rl-results-ac75cf17190e
+- [ ] Check the ExplianceVariance calculation
+
+### 2022-08-26
+#### 1. Done
+- [x] Reproducing reinforcemenr learning benchmarks: [BeamRider], tricks&fixed bugs:
+  - DeepMind atari env, according atari_wrappers[refer to rllib source code]
+  - clip the reward to [-1, 1], using np.sign
+  - convert lr rate from 5e-4(cant converge) to 5e-5, epsilon from 1e-5 to 1e-7
+  - fix the value_fn_out shape error
+  - fix the explained variance error calculation
+- [x] Add the timestep variable into Tensorflow scale & logging info
+- [x] Fix the zero represatation of Episode Reward in logging info 
+- [x] Check the ExplianceVariance calculation
+#### 2. Todo
+- [ ] Clean up code and merge into main branch
+- [ ] Write the README.md's atari part
+- [ ] Add mahjong game env
+- [ ] Add ray distributed training mode
+- [ ] Finish Gfootbal's academy scenarios experiments
+- [ ] Reproducing https://towardsdatascience.com/reproducing-google-research-football-rl-results-ac75cf17190e

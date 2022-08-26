@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:35:25
-LastEditTime: 2022-08-05 12:01:44
+LastEditTime: 2022-08-23 18:15:05
 LastEditors: hanyu
 Description: get logger
 FilePath: /RL_Lab/get_logger.py
@@ -10,7 +10,6 @@ FilePath: /RL_Lab/get_logger.py
 import os
 from dataclasses import dataclass
 from datetime import datetime
-from pprint import PrettyPrinter
 from prettytable import PrettyTable
 
 import tensorflow as tf
@@ -56,7 +55,10 @@ class TFLogger():
     def store(self, name=None, value=None):
         if value is not None:
             if name not in self.metrics.keys():
-                self.metrics[name] = tf.keras.metrics.Mean(name=name)
+                if name in ["ts"]:
+                    self.metrics[name] = tf.keras.metrics.Sum(name=name)
+                else:
+                    self.metrics[name] = tf.keras.metrics.Mean(name=name)
             self.metrics[name].update_state(value)
 
     def log_metrics(self, epoch: int):
@@ -70,14 +72,16 @@ class TFLogger():
         pt.field_names = ["Item", "Value"]
         pt.add_row(["epoch", epoch])
 
+        ts = self.metrics["ts"].result().numpy().copy()
         for key, metric in self.metrics.items():
             value = metric.result()
             # logger.info(f'{key}: {value}')
             pt.add_row([key, value.numpy()])
 
             if key not in ["Episode Reward", "Episode Length"] or value != 0:
-                with self.summary_writer.as_default():
-                    tf.summary.scalar(key, value, step=epoch)
+                with tf.name_scope("rl stats"):
+                    with self.summary_writer.as_default():
+                        tf.summary.scalar(key, value, step=ts)
             metric.reset_states()
 
         logger.info('\n' + pt.__str__())

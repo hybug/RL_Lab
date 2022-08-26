@@ -20,13 +20,14 @@ env_params:
 policy_params:
   lr: 0.000343
   train_iters: 2
-  clip_ratio: 0.08
+  clip_param: 0.08
   target_kl: 0.01
   kl_coef: 0
   ent_coef: 0.03
-  v_coef: 0.5
+  vf_loss_coef: 0.5
   clip_grads: 0.64
 
+  nn_architecure: "impala_cnn_actor_critic"
   pool_size: [1, 1]
   resnet_filters: 
     - [32, 3, 1, 2]
@@ -41,7 +42,6 @@ policy_params:
 
 train_params:
   trainer: "Proximal Policy Optimization"
-  nn_architecure: "impala_cnn_actor_critic"
 
   epochs: 100
   steps_per_epoch: 512

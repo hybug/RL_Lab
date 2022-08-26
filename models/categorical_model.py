@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:10:55
-LastEditTime: 2022-08-19 15:06:26
+LastEditTime: 2022-08-25 18:25:51
 LastEditors: hanyu
 Description: categorical model
 FilePath: /RL_Lab/models/categorical_model.py
@@ -63,8 +63,8 @@ class CategoricalModel(TFModelBase):
         return -logp
 
     def forward(self, inputs_dict: dict):
-        # return self.forward_func(inputs_dict)
-        return self.base_model(inputs_dict['obs'])
+        return self.forward_func(inputs_dict)
+        # return self.base_model(inputs_dict['obs'])
 
     def get_action_logp_value(self, obs):
         logits, values = self.forward(obs)

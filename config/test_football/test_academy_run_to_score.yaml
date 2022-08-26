@@ -17,10 +17,10 @@ env_params:
 policy_params:
   lr: 0.000343
   train_iters: 2
-  clip_ratio: 0.08
+  clip_param: 0.08
   target_kl: 0.01
   ent_coef: 0.03
-  v_coef: 0.5
+  vf_loss_coef: 0.5
   clip_grads: 0.64
 
 

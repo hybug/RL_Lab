@@ -17,11 +17,11 @@ env_params:
 policy_params:
   lr: 0.0005
   train_iters: 10
-  clip_ratio: 0.3
+  clip_param: 0.3
   target_kl: 0.01
   ent_coef: 0.00
   kl_coef: 0.2
-  v_coef: 1.0
+  vf_loss_coef: 1.0
   clip_grads: 0.64
 
 
@@ -29,7 +29,7 @@ policy_params:
   mlp_filters: 
     - 100
     - 50
-  activation: tanh
+  activation: relu
   output_activation: 
   kernel_initializer: 
   input_shape: [4]
