@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-08-04 11:02:18
-LastEditTime: 2022-08-04 20:27:51
+LastEditTime: 2022-08-26 11:45:55
 LastEditors: hanyu
 Description: sample batch
 FilePath: /RL_Lab/policy/sample_batch.py
@@ -11,6 +11,7 @@ from typing import List
 import numpy as np
 
 
+# https://github.com/ray-project/ray/blob/master/rllib/policy/sample_batch.py
 class SampleBatch(dict):
     """Similar to Rllib's SampleBatch class
     """

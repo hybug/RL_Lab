@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:53:16
-LastEditTime: 2022-08-26 11:04:12
+LastEditTime: 2022-08-26 11:44:43
 LastEditors: hanyu
 Description: ppo policy
 FilePath: /RL_Lab/alogrithm/ppo/ppo_policy.py
@@ -79,15 +79,11 @@ class PPOPolicy(PolicyBase):
         """Make update with random sampled minibatches and return mean kl-divvergence for early breaking
 
         Args:
-            obses (np.array): observations
-            actions (np.array): actions
-            advs (np.array): advantages
-            rets (np.array): returns
-            logp_t (np.array): logp_t
-            indexs (np.array): indexs
+            rollouts (SampleBatch): rollout traject samplebatches
+            indexs (np.array): indes
 
         Returns:
-            dict: policy_loss, value_loss, entropy_loss, approx_ent, approx_kl
+            dict: losses
         """
         np.random.shuffle(indexs)
         # means = list()
@@ -125,7 +121,8 @@ class PPOPolicy(PolicyBase):
     def _loss(self, mini_rollouts: SampleBatch):
         # Depending on the policy(categorical or gaussian)
         # output from the network are logits or mu
-        logits, values = self.model.forward({"obs": mini_rollouts[SampleBatch.OBS]})
+        logits, values = self.model.forward(
+            {"obs": mini_rollouts[SampleBatch.OBS]})
 
         logp = self.model.logp(logits, mini_rollouts[SampleBatch.ACTIONS])
         ratio = tf.exp(logp - mini_rollouts[SampleBatch.ACTION_LOGP])
@@ -146,7 +143,8 @@ class PPOPolicy(PolicyBase):
                     tf.float32))
 
         vpred = values
-        vf_loss = tf.math.square(vpred - mini_rollouts[Postprocessing.VALUE_TARGETS])
+        vf_loss = tf.math.square(vpred -
+                                 mini_rollouts[Postprocessing.VALUE_TARGETS])
         vf_loss_clipped = tf.clip_by_value(vf_loss, 0, self.vf_clip_param)
         value_loss = tf.reduce_mean(vf_loss_clipped)
 

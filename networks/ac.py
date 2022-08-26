@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:07:09
-LastEditTime: 2022-08-25 18:32:43
+LastEditTime: 2022-08-26 11:57:03
 LastEditors: hanyu
 Description: actor critic framework
 FilePath: /RL_Lab/networks/ac.py
@@ -83,7 +83,7 @@ def cnn_simple_actor_critic(params: PolicyParams,
 
 @register_network('mlp_simple_actor_critic')
 def mlp_simple_actor_critic(params: PolicyParams,
-                            name='mlp_simple_actor_critic'):
+                            name='mlp_simple_ac'):
     inputs = tf.keras.layers.Input(shape=tuple(params.input_shape),
                                    name=f"{name}_obs")
     mlp_out = mlp(inputs, params)
@@ -99,6 +99,7 @@ def mlp_simple_actor_critic(params: PolicyParams,
 
     def forward(inputs: dict):
         logits, value = model(inputs["obs"])
+        value = tf.reshape(value, [-1])
         return logits, value
 
     return {"forward": forward, "model": model}

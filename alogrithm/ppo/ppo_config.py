@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:46:16
-LastEditTime: 2022-08-26 11:07:51
+LastEditTime: 2022-08-26 15:33:35
 LastEditors: hanyu
 Description: ppo config
 FilePath: /RL_Lab/alogrithm/ppo/ppo_config.py
@@ -14,15 +14,7 @@ from configs.config_base import ParamsBase, singleton
 @dataclass
 class PPOEnvParams:
     # Football Params
-    n_player: int = field(repr=False)
     env_name: str = field(repr=False)
-    reward: str = field(repr=False)
-    is_obs_continuous: bool = field(repr=False)
-    is_act_continuous: bool = field(repr=False)
-    obs_type: int = field(repr=False)
-    max_step: int = field(repr=False)
-    agent_nums: list = field(repr=False, default_factory=list)
-    act_box: dict = field(repr=False, default_factory=dict)
 
     # Basic Params
     num_envs: int = 2

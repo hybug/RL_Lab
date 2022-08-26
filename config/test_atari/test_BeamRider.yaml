@@ -1,7 +1,5 @@
 env_params:
-  n_player: 2
   env_name: "atari BeamRider"
-  reward: 
   num_envs: 10
 
 policy_params:

@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 17:45:25
-LastEditTime: 2022-08-26 11:07:12
+LastEditTime: 2022-08-26 11:49:47
 LastEditors: hanyu
 Description: ppo trainer
 FilePath: /RL_Lab/alogrithm/ppo/ppo_trainer.py
@@ -47,10 +47,11 @@ class PPOTrainer(TrainerBase):
             self.params.policy.nn_architecure)(params=self.params.policy)
 
         # Initialize model
-        if not self.params.env.is_act_continuous:
-            model_cls = CategoricalModel
-        else:
-            raise NotImplementedError("Error >> Model not implemented")
+        # if not self.params.env.is_act_continuous:
+        #     model_cls = CategoricalModel
+        # else:
+        #     raise NotImplementedError("Error >> Model not implemented")
+        model_cls = CategoricalModel
         self.model = model_cls(network=self.network, params=self.params)
 
         # Restore model

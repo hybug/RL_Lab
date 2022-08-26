@@ -1,19 +1,7 @@
 env_params:
-  n_player: 2
   env_name: "gym CartPole-v1"
-  reward: 
-  num_envs: 2
-  is_obs_continuous: false
-  is_act_continuous: false
-  obs_type: 
-    - "dict"
-    - "dict"
-  max_step: 3000
-  agent_nums: 
-    - 1
-    - 0
-  act_box: 
-    discrete_n: 2
+  num_envs: 10
+
 policy_params:
   lr: 0.0005
   train_iters: 10
@@ -24,7 +12,7 @@ policy_params:
   vf_loss_coef: 1.0
   clip_grads: 0.64
 
-
+  nn_architecure: "mlp_simple_actor_critic"
   pool_size: 
   mlp_filters: 
     - 100
@@ -37,9 +25,9 @@ policy_params:
 
 train_params:
   trainer: "Proximal Policy Optimization"
-  nn_architecure: "mlp_simple_actor_critic"
 
-  epochs: 50
+
+  epochs: 100
   steps_per_epoch: 512
   num_mini_batches: 4
   gamma: 0.99
