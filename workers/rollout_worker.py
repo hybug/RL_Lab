@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 16:14:35
-LastEditTime: 2022-08-26 11:03:37
+LastEditTime: 2022-08-26 17:53:32
 LastEditors: hanyu
 Description: rollout worker
 FilePath: /RL_Lab/workers/rollout_worker.py
@@ -45,7 +45,7 @@ class RolloutWorker:
             self._obs_dict, self._rews_dict, self._dones_dict, _ = self.batched_env.reset(
             )
             self._first_reset = True
-        
+
         # Init sample_batch_builder for every env
         _sample_batch_builders = [
             SampleBatchBuilder() for _ in range(self.params.env.num_envs)

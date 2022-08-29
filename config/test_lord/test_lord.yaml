@@ -1,0 +1,39 @@
+env_params:
+  env_name: "lord"
+  num_envs: 10
+
+policy_params:
+  lr: 0.00005
+  train_iters: 10
+  clip_param: 0.1
+  vf_clip_param: 10
+  target_kl: 0.01
+  ent_coef: 0.01
+  kl_coef: 0.5
+  vf_loss_coef: 1.0
+  clip_grads: 0.64
+
+
+  nn_architecure: "cnn_simple_actor_critic"
+  pool_size: 
+  cnn_filters: 
+    - [16, 8, 4]
+    - [32, 4, 2]
+    - [256, 11, 1]
+  activation: relu
+  output_activation: 
+  kernel_initializer: 
+  input_shape: [84, 84, 4]
+  act_size: 9
+
+train_params:
+  trainer: "Proximal Policy Optimization"
+
+  epochs: 100000
+  steps_per_epoch: 1000
+  num_mini_batches: 4
+  gamma: 0.99
+  lam: 0.95
+  save_freq: 200
+
+  restore_path:

@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:30:23
-LastEditTime: 2022-08-26 16:27:11
+LastEditTime: 2022-08-26 17:28:56
 LastEditors: hanyu
 Description: env base
 FilePath: /RL_Lab/envs/env_base.py
@@ -39,6 +39,9 @@ def _init_env(env_params: EnvParams, seed: int, worker_id: int):
         if is_atari(env):
             env = wrap_deepmind(env)
             env_type = 'gym-atari-deepmind'
+    elif "lord" in env_params.env_name:
+        from envs.env_instances.lord.lord_env import LordEnv
+        env = LordEnv()
     else:
         env = None
         env_type = None
