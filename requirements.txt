@@ -1,0 +1,6 @@
+tensorflow-gpu==2.8.0
+gym==0.26.2
+protobuf==3.20.0
+pyyaml==6.0
+prettytable==3.6.0
+loguru==0.6.0

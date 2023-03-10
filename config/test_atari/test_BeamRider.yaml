@@ -30,8 +30,8 @@ train_params:
   trainer: "Proximal Policy Optimization"
 
   epochs: 100000
-  steps_per_epoch: 1000
-  num_mini_batches: 4
+  steps_per_epoch: 100
+  num_mini_batches: 2
   gamma: 0.99
   lam: 0.95
   save_freq: 200

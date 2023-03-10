@@ -1,7 +1,7 @@
 <!--
  * @Author: hanyu
  * @Date: 2021-06-15 10:34:08
- * @LastEditTime: 2022-08-26 10:50:42
+ * @LastEditTime: 2023-03-10 17:08:46
  * @LastEditors: hanyu
  * @Description: work docs
  * @FilePath: /RL_Lab/docs/work_docs.md
@@ -151,3 +151,8 @@ Reproducing https://towardsdatascience.com/reproducing-google-research-football-
 - [ ] Add ray distributed training mode
 - [ ] Finish Gfootbal's academy scenarios experiments
 - [ ] Reproducing https://towardsdatascience.com/reproducing-google-research-football-rl-results-ac75cf17190e
+
+
+### 2023-03-10
+After half a year wasted on a fail project, I return back to finish this repository. 
+Begin with finishing ppo's benchworks, and find out the reason for not convergence in football.
