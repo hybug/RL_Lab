@@ -8,7 +8,7 @@ FilePath: /RL_Lab/envs/env.py
 '''
 
 from configs.config_base import EnvParams
-from envs.env_base import EnvBase
+from envs.env_base_football import EnvBase
 
 
 class Env(EnvBase):

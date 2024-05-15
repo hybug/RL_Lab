@@ -1,10 +1,10 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:30:23
-LastEditTime: 2022-08-03 11:41:18
+LastEditTime: 2024-05-15 10:27:53
 LastEditors: hanyu
 Description: env base
-FilePath: /RL_Lab/envs/env_base.py
+FilePath: /RL_Lab/envs/env_base_football.py
 '''
 
 from configs.config_base import EnvParams

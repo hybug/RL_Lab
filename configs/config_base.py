@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:32:24
-LastEditTime: 2022-08-03 11:37:53
+LastEditTime: 2024-05-15 20:50:34
 LastEditors: hanyu
 Description: basic config
 FilePath: /RL_Lab/configs/config_base.py
