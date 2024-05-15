@@ -1,10 +1,10 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:30:23
-LastEditTime: 2024-05-15 10:27:53
+LastEditTime: 2024-05-15 21:59:42
 LastEditors: hanyu
 Description: env base
-FilePath: /RL_Lab/envs/env_base_football.py
+FilePath: /RL_Lab/envs/env_football/env_base_football.py
 '''
 
 from configs.config_base import EnvParams
@@ -19,7 +19,7 @@ def _init_env(env_params: EnvParams, seed: int, worker_id: int):
         env_type = 'football'
         env = football_env.create_environment(env_name=env_params.env_name,
                                               stacked=True,
-                                              rewards=env_params.reward,
+                                              rewards="scoring,checkpoints",
                                               write_goal_dumps=False,
                                               write_full_episode_dumps=False,
                                               render=False,
@@ -30,6 +30,15 @@ def _init_env(env_params: EnvParams, seed: int, worker_id: int):
         env_params.env_name = env_params.env_name.split(' ')[-1]
         env_type = 'gym'
         env = gym.make(env_params.env_name)
+    elif "atari" in env_params.env_name:
+        import gym
+        from envs.wrappers.atari_wrappers import is_atari, wrap_deepmind
+        env_params.env_name = env_params.env_name.split(" ")[-1]
+        env_type = 'gym-atari'
+        env = gym.make(f"{env_params.env_name}NoFrameskip-v4")
+        if is_atari(env):
+            env = wrap_deepmind(env)
+            env_type = 'gym-atari-deepmind'
     else:
         env = None
         env_type = None
@@ -53,14 +62,6 @@ class EnvBase():
         self._obs_shapes = dict()
         self._env, self._env_type = _init_env(env_params, self._seed,
                                               worker_id)
-
-        # if self._env_type == 'football':
-        #     self._act_is_discrete = not self._env.is_act_continuous
-        #     self._obs_is_visual = False
-        #     self._obs_is_vector = True
-        #     self._obs_is_grayscale = False
-
-        #     self._act_shape = self._env.action_dim
 
     @property
     def env_info(self):

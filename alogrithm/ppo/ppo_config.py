@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-19 11:46:16
-LastEditTime: 2022-08-03 17:20:05
+LastEditTime: 2022-08-26 15:33:35
 LastEditors: hanyu
 Description: ppo config
 FilePath: /RL_Lab/alogrithm/ppo/ppo_config.py
@@ -14,15 +14,7 @@ from configs.config_base import ParamsBase, singleton
 @dataclass
 class PPOEnvParams:
     # Football Params
-    n_player: int = field(repr=False)
     env_name: str = field(repr=False)
-    reward: str = field(repr=False)
-    is_obs_continuous: bool = field(repr=False)
-    is_act_continuous: bool = field(repr=False)
-    obs_type: int = field(repr=False)
-    max_step: int = field(repr=False)
-    agent_nums: list = field(repr=False, default_factory=list)
-    act_box: dict = field(repr=False, default_factory=dict)
 
     # Basic Params
     num_envs: int = 2
@@ -36,8 +28,6 @@ class PPOEnvParams:
 class PPOTrainParams:
 
     trainer: str = "Proximal Policy Optimization"
-    # Choose from architecture defined in network.py
-    nn_architecure: str = ''
 
     # Training Hyperparameters
     epochs: int = 1000  # Number of epochs
@@ -58,15 +48,19 @@ class PPOPolicyParams:
     lr: float = 0.001
     train_iters: int = 5
 
-    clip_ratio: float = 0.2
+    clip_param: float = 0.2
+    vf_clip_param: float = 10
     target_kl: float = 0.01
     ent_coef: float = 0.1
-    v_coef: float = 0.5
+    vf_loss_coef: float = 0.5
     kl_coef: float = 0.2
     clip_grads: float = 0.5
 
     # Network Hyperparameters
+    # Choose from architecture defined in network.py
+    nn_architecure: str = ''
     resnet_filters: list = field(default_factory=list)
+    cnn_filters: list = field(default_factory=list)
     pool_size: list = field(default_factory=list)
     mlp_filters: list = field(default_factory=list)
     activation: str = "relu"

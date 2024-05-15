@@ -1,7 +1,7 @@
 '''
 Author: hanyu
 Date: 2022-07-26 11:08:21
-LastEditTime: 2022-07-29 16:32:34
+LastEditTime: 2022-08-04 16:56:30
 LastEditors: hanyu
 Description: model base
 FilePath: /RL_Lab/models/model_base.py
@@ -24,9 +24,6 @@ class TFModelBase:
     def trainable_variables(self):
         return [v for v in self.variables() if v.trainable]
 
-    def forward(self, inputs_dict: dict):
-        raise NotImplementedError
-
     def __call__(self, inputs_dict: dict):
         outputs = self.forward(inputs_dict=inputs_dict)
         return outputs
@@ -42,3 +39,18 @@ class TFModelBase:
             return logits, value
 
         self.forward_func = forward
+
+    def forward(self, inputs_dict: dict):
+        raise NotImplementedError
+
+    def compute_action_from_logits(self):
+        raise NotImplementedError
+
+    def logp(self):
+        raise NotImplementedError
+
+    def get_action_logp_value(self):
+        raise NotImplementedError
+
+    def entropy(self):
+        raise NotImplementedError
